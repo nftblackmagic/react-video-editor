@@ -5,3 +5,9 @@ export const PLAYER_SEEK = `${PLAYER_PREFIX}:seek`;
 export const PLAYER_SEEK_TO = `${PLAYER_PREFIX}:seekTo`;
 export const PLAYER_SEEK_BY = `${PLAYER_PREFIX}:seekBy`;
 export const PLAYER_TOGGLE_PLAY = `${PLAYER_PREFIX}:togglePlay`;
+export const PLAYER_TIME_UPDATE = `${PLAYER_PREFIX}:timeUpdate`;
+
+// Transcript events
+export const TRANSCRIPT_PREFIX = "transcript";
+export const TRANSCRIPT_SELECT = `${TRANSCRIPT_PREFIX}:select`;
+export const TRANSCRIPT_HIGHLIGHT = `${TRANSCRIPT_PREFIX}:highlight`;

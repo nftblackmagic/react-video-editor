@@ -8,6 +8,8 @@ import {
 	PLAYER_SEEK,
 	PLAYER_SEEK_BY,
 	PLAYER_TOGGLE_PLAY,
+	TRANSCRIPT_PREFIX,
+	TRANSCRIPT_SELECT,
 } from "../constants/events";
 import { LAYER_PREFIX, LAYER_SELECTION } from "@designcombo/state";
 import { TIMELINE_SEEK, TIMELINE_PREFIX } from "@designcombo/timeline";
@@ -79,6 +81,27 @@ const useTimelineEvents = () => {
 		});
 		return () => selectionSubscription.unsubscribe();
 	}, [timeline]);
+
+	// handle transcript events
+	useEffect(() => {
+		const transcriptEvents = subject.pipe(
+			filter(({ key }) => key.startsWith(TRANSCRIPT_PREFIX)),
+		);
+
+		const transcriptSubscription = transcriptEvents.subscribe((obj) => {
+			if (obj.key === TRANSCRIPT_SELECT) {
+				const time = obj.value?.payload?.time;
+				if (playerRef?.current && typeof time === "number") {
+					// Jump player to selected transcript time
+					playerRef.current.seekTo((time / 1000) * fps);
+					// The timeline will automatically follow the player position
+					// through the existing playhead tracking mechanism
+				}
+			}
+		});
+
+		return () => transcriptSubscription.unsubscribe();
+	}, [playerRef, fps, timeline]);
 };
 
 export default useTimelineEvents;

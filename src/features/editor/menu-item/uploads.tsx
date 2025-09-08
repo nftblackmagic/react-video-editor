@@ -8,6 +8,9 @@ import {
 	Video as VideoIcon,
 	Loader2,
 	UploadIcon,
+	FileText,
+	CheckCircle,
+	AlertCircle,
 } from "lucide-react";
 import { generateId } from "@designcombo/timeline";
 import { Button } from "@/components/ui/button";
@@ -15,8 +18,14 @@ import useUploadStore from "../store/use-upload-store";
 import ModalUpload from "@/components/modal-upload";
 
 export const Uploads = () => {
-	const { setShowUploadModal, uploads, pendingUploads, activeUploads } =
-		useUploadStore();
+	const { 
+		setShowUploadModal, 
+		uploads, 
+		pendingUploads, 
+		activeUploads,
+		transcriptionStatus,
+		transcriptions 
+	} = useUploadStore();
 
 	// Group completed uploads by type
 	const videos = uploads.filter(
@@ -97,6 +106,40 @@ export const Uploads = () => {
 		</div>
 	);
 
+	// Helper to get transcription status icon
+	const TranscriptionStatus = ({ uploadId }: { uploadId: string }) => {
+		const status = transcriptionStatus[uploadId];
+		const hasTranscript = transcriptions[uploadId]?.length > 0;
+		
+		if (!status || status === 'idle') return null;
+		
+		if (status === 'processing') {
+			return (
+				<div className="absolute top-1 right-1 bg-background/90 rounded p-0.5">
+					<Loader2 className="w-3 h-3 animate-spin text-blue-500" title="Transcribing..." />
+				</div>
+			);
+		}
+		
+		if (status === 'completed' && hasTranscript) {
+			return (
+				<div className="absolute top-1 right-1 bg-background/90 rounded p-0.5">
+					<FileText className="w-3 h-3 text-green-500" title="Transcript available" />
+				</div>
+			);
+		}
+		
+		if (status === 'failed') {
+			return (
+				<div className="absolute top-1 right-1 bg-background/90 rounded p-0.5">
+					<AlertCircle className="w-3 h-3 text-red-500" title="Transcription failed" />
+				</div>
+			);
+		}
+		
+		return null;
+	};
+
 	return (
 		<div className="flex flex-1 flex-col">
 			<div className="text-text-primary flex h-12 flex-none items-center px-4 text-sm font-medium">
@@ -149,22 +192,27 @@ export const Uploads = () => {
 						</div>
 						<ScrollArea className="max-h-32">
 							<div className="grid grid-cols-3 gap-2 max-w-full">
-								{videos.map((video, idx) => (
-									<div
-										className="flex items-center gap-2 flex-col w-full"
-										key={video.id || idx}
-									>
-										<Card
-											className="w-16 h-16 flex items-center justify-center overflow-hidden relative cursor-pointer"
-											onClick={() => handleAddVideo(video)}
+								{videos.map((video, idx) => {
+									// Generate a consistent ID for this upload
+									const uploadId = video.uploadId || `video-${idx}`;
+									return (
+										<div
+											className="flex items-center gap-2 flex-col w-full"
+											key={video.id || idx}
 										>
-											<VideoIcon className="w-8 h-8 text-muted-foreground" />
-										</Card>
-										<div className="text-xs text-muted-foreground truncate w-full text-center">
-											{video.file?.name || video.url || "Video"}
+											<Card
+												className="w-16 h-16 flex items-center justify-center overflow-hidden relative cursor-pointer"
+												onClick={() => handleAddVideo(video)}
+											>
+												<VideoIcon className="w-8 h-8 text-muted-foreground" />
+												<TranscriptionStatus uploadId={uploadId} />
+											</Card>
+											<div className="text-xs text-muted-foreground truncate w-full text-center">
+												{video.file?.name || video.url || "Video"}
+											</div>
 										</div>
-									</div>
-								))}
+									);
+								})}
 							</div>
 						</ScrollArea>
 					</div>
@@ -209,22 +257,27 @@ export const Uploads = () => {
 						</div>
 						<ScrollArea className="max-h-32">
 							<div className="grid grid-cols-3 gap-2 max-w-full">
-								{audios.map((audio, idx) => (
-									<div
-										className="flex items-center gap-2 flex-col w-full"
-										key={audio.id || idx}
-									>
-										<Card
-											className="w-16 h-16 flex items-center justify-center overflow-hidden relative cursor-pointer"
-											onClick={() => handleAddAudio(audio)}
+								{audios.map((audio, idx) => {
+									// Generate a consistent ID for this upload
+									const uploadId = audio.uploadId || `audio-${idx}`;
+									return (
+										<div
+											className="flex items-center gap-2 flex-col w-full"
+											key={audio.id || idx}
 										>
-											<Music className="w-8 h-8 text-muted-foreground" />
-										</Card>
-										<div className="text-xs text-muted-foreground truncate w-full text-center">
-											{audio.file?.name || audio.url || "Audio"}
+											<Card
+												className="w-16 h-16 flex items-center justify-center overflow-hidden relative cursor-pointer"
+												onClick={() => handleAddAudio(audio)}
+											>
+												<Music className="w-8 h-8 text-muted-foreground" />
+												<TranscriptionStatus uploadId={uploadId} />
+											</Card>
+											<div className="text-xs text-muted-foreground truncate w-full text-center">
+												{audio.file?.name || audio.url || "Audio"}
+											</div>
 										</div>
-									</div>
-								))}
+									);
+								})}
 							</div>
 						</ScrollArea>
 					</div>

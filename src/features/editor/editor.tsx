@@ -4,6 +4,8 @@ import useStore from "./store/use-store";
 import Navbar from "./navbar";
 import useTimelineEvents from "./hooks/use-timeline-events";
 import Scene from "./scene";
+import { TranscriptEditor } from "./transcript";
+import PlayerTimeEmitter from "./components/PlayerTimeEmitter";
 import { SceneRef } from "./scene/scene.types";
 import StateManager, { DESIGN_LOAD } from "@designcombo/state";
 import { useEffect, useRef, useState } from "react";
@@ -192,8 +194,12 @@ const Editor = ({ tempId, id }: { tempId?: string; id?: string }) => {
 		setLoaded(true);
 	}, []);
 
+	// State for showing/hiding transcript
+	const [showTranscript, setShowTranscript] = useState(true);
+
 	return (
 		<div className="flex h-screen w-screen flex-col">
+			<PlayerTimeEmitter />
 			<Navbar
 				projectName={projectName}
 				user={null}
@@ -211,19 +217,27 @@ const Editor = ({ tempId, id }: { tempId?: string; id?: string }) => {
 					<ResizablePanel className="relative" defaultSize={70}>
 						<FloatingControl />
 						<div className="flex h-full flex-1">
-							{/* Sidebar only on large screens - conditionally mounted */}
-
-							<div
-								style={{
-									width: "100%",
-									height: "100%",
-									position: "relative",
-									flex: 1,
-									overflow: "hidden",
-								}}
-							>
-								<CropModal />
-								<Scene ref={sceneRef} stateManager={stateManager} />
+							{/* Scene and Transcript side by side */}
+							<div className="flex w-full h-full">
+								{/* Scene/Preview area */}
+								<div
+									style={{
+										width: showTranscript && isLargeScreen ? "calc(100% - 400px)" : "100%",
+										height: "100%",
+										position: "relative",
+										overflow: "hidden",
+									}}
+								>
+									<CropModal />
+									<Scene ref={sceneRef} stateManager={stateManager} />
+								</div>
+								
+								{/* Transcript panel - only on large screens */}
+								{showTranscript && isLargeScreen && (
+									<div style={{ width: "400px", height: "100%" }}>
+										<TranscriptEditor />
+									</div>
+								)}
 							</div>
 						</div>
 					</ResizablePanel>

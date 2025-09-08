@@ -8,6 +8,7 @@ import { dispatch, filter, subject } from "@designcombo/events";
 import {
 	TIMELINE_BOUNDING_CHANGED,
 	TIMELINE_PREFIX,
+	TIMELINE_SEEK,
 } from "@designcombo/timeline";
 import useStore from "../store/use-store";
 import Playhead from "./playhead";
@@ -249,6 +250,9 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 
 		const time = unitsToTimeMs(units, scale.zoom);
 		playerRef?.current?.seekTo((time * fps) / 1000);
+		
+		// Dispatch TIMELINE_SEEK event for transcript sync
+		dispatch(TIMELINE_SEEK, { payload: { time } });
 	};
 
 	const onRulerScroll = (newScrollLeft: number) => {
