@@ -3,7 +3,6 @@ import TranscriptSegment from "./TranscriptSegment";
 import useTranscriptStore from "../store/use-transcript-store";
 import useUploadStore from "../store/use-upload-store";
 import { useTranscriptSync } from "../hooks/use-transcript-sync";
-import { mockData } from "../../../../debug/mock-data";
 
 const TranscriptEditor: React.FC = () => {
   const { segments, activeSegmentId, initSegments } = useTranscriptStore();
@@ -37,19 +36,6 @@ const TranscriptEditor: React.FC = () => {
       // Use the first completed transcription (could be enhanced to allow selection)
       const [uploadId, transcriptSegments] = completedTranscriptions[0];
       initSegments(transcriptSegments);
-    } else if (segments.length === 0 && process.env.NODE_ENV === 'development') {
-      // Load mock data in development if no transcriptions available
-      const formattedSegments = mockData.map((seg: any, index: number) => ({
-        id: `seg-${index + 1}`,
-        text: seg.text || "",
-        start: seg.start * 1000, // Convert seconds to milliseconds
-        end: seg.end * 1000, // Convert seconds to milliseconds
-        type: seg.type,
-        speaker_id: seg.speaker_id,
-        logprob: seg.logprob,
-        characters: seg.characters,
-      }));
-      initSegments(formattedSegments);
     }
   }, [transcriptions, transcriptionStatus, segments.length, initSegments]);
 

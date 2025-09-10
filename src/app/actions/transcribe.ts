@@ -2,7 +2,6 @@
 
 import { TranscriptSegment } from "@/features/editor/transcript/types";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
-import { mockData } from "../../../debug/mock-data";
 
 const elevenlabs = new ElevenLabsClient({
   apiKey: process.env.ELEVENLABS_API_KEY,
@@ -12,19 +11,6 @@ export async function transcribeElevenLabs(
   url: string,
   language: string
 ): Promise<TranscriptSegment[]> {
-  if (process.env.NODE_ENV === "development") {
-    // Add IDs to mock data segments
-    return mockData.map((seg: any, index: number) => ({
-      id: `seg-${index + 1}`,
-      text: seg.text || "",
-      start: seg.start * 1000, // Convert seconds to milliseconds
-      end: seg.end * 1000, // Convert seconds to milliseconds
-      type: seg.type,
-      speaker_id: seg.speaker_id,
-      logprob: seg.logprob,
-      characters: seg.characters,
-    }));
-  }
   const response = await fetch(url);
   const audioBlob = await response.blob();
   // Call ElevenLabs transcription API

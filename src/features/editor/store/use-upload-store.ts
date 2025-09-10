@@ -8,6 +8,10 @@ import { dispatch } from "@designcombo/events";
 import { ADD_VIDEO, ADD_IMAGE, ADD_AUDIO } from "@designcombo/state";
 import { generateId } from "@designcombo/timeline";
 import { transcribeElevenLabs } from "@/app/actions/transcribe";
+import {
+  addSegmentedMedia,
+  SegmentSplitOptions,
+} from "../utils/segment-splitter";
 
 interface UploadFile {
   id: string;
@@ -49,6 +53,7 @@ interface IUploadStore {
   removeUpload: (id: string) => void;
   uploads: any[];
   setUploads: (uploads: any[] | ((prev: any[]) => any[])) => void;
+  addUpload: (upload: any) => void;
 
   // Transcription related
   transcriptionStatus: Record<
@@ -56,7 +61,12 @@ interface IUploadStore {
     "idle" | "processing" | "completed" | "failed"
   >;
   transcriptions: Record<string, TranscriptSegment[]>;
-  startTranscription: (uploadId: string, url: string) => Promise<void>;
+  startTranscription: (uploadId: string, url?: string) => Promise<void>;
+  completeTranscription: (
+    uploadId: string,
+    segments: TranscriptSegment[],
+    autoSplit?: boolean
+  ) => void;
   setTranscriptionStatus: (
     uploadId: string,
     status: "idle" | "processing" | "completed" | "failed"
@@ -135,7 +145,6 @@ const useUploadStore = create<IUploadStore>()(
 
         const callbacks: UploadCallbacks = {
           onProgress: (uploadId, progress) => {
-            console.log("progress", progress, uploadId);
             updateUploadProgress(uploadId, progress);
           },
           onStatus: (uploadId, status, error) => {
@@ -150,12 +159,10 @@ const useUploadStore = create<IUploadStore>()(
           },
         };
 
-        console.log("activeUploads", currentActiveUploads);
         // Process all uploading items
         for (const upload of currentActiveUploads.filter(
           (upload) => upload.status === "uploading"
         )) {
-          console.log("upload", upload);
           processUpload(
             upload.id,
             { file: upload.file, url: upload.url },
@@ -192,9 +199,6 @@ const useUploadStore = create<IUploadStore>()(
                   // Auto-add to timeline based on media type
                   if (mediaUrl) {
                     if (contentType.startsWith("video/")) {
-                      console.log(
-                        `Auto-adding video to timeline: ${data.fileName}`
-                      );
                       dispatch(ADD_VIDEO, {
                         payload: {
                           id: generateId(),
@@ -212,9 +216,6 @@ const useUploadStore = create<IUploadStore>()(
                         },
                       });
                     } else if (contentType.startsWith("image/")) {
-                      console.log(
-                        `Auto-adding image to timeline: ${data.fileName}`
-                      );
                       dispatch(ADD_IMAGE, {
                         payload: {
                           id: generateId(),
@@ -231,9 +232,7 @@ const useUploadStore = create<IUploadStore>()(
                         options: {},
                       });
                     } else if (contentType.startsWith("audio/")) {
-                      console.log(
-                        `Auto-adding audio to timeline: ${data.fileName}`
-                      );
+                      // Add audio to timeline immediately
                       dispatch(ADD_AUDIO, {
                         payload: {
                           id: generateId(),
@@ -251,9 +250,6 @@ const useUploadStore = create<IUploadStore>()(
                   // Start transcription for transcribable media
                   if (isTranscribableMedia(contentType)) {
                     if (mediaUrl) {
-                      console.log(
-                        `Starting automatic transcription for ${data.fileName}`
-                      );
                       // Use the upload ID as the transcription ID
                       get().startTranscription(upload.id, mediaUrl);
                     }
@@ -294,13 +290,16 @@ const useUploadStore = create<IUploadStore>()(
               ? (uploads as (prev: any[]) => any[])(state.uploads)
               : uploads,
         })),
+      addUpload: (upload: any) =>
+        set((state) => ({
+          uploads: [...state.uploads, upload],
+        })),
 
       // Transcription implementation
       transcriptionStatus: {},
       transcriptions: {},
 
-      startTranscription: async (uploadId: string, url: string) => {
-        console.log(`Starting transcription for upload ${uploadId}`);
+      startTranscription: async (uploadId: string, url?: string) => {
         set((state) => ({
           transcriptionStatus: {
             ...state.transcriptionStatus,
@@ -308,26 +307,16 @@ const useUploadStore = create<IUploadStore>()(
           },
         }));
 
+        // If no URL provided, just set status (for mock data case)
+        if (!url) {
+          return;
+        }
+
         try {
           const segments = await transcribeElevenLabs(url, "zh");
 
-          // Store transcription
-          set((state) => ({
-            transcriptions: {
-              ...state.transcriptions,
-              [uploadId]: segments,
-            },
-            transcriptionStatus: {
-              ...state.transcriptionStatus,
-              [uploadId]: "completed",
-            },
-          }));
-
-          // Load into TranscriptStore for display
-          if (segments.length > 0) {
-            useTranscriptStore.getState().initSegments(segments);
-            console.log(`Loaded ${segments.length} transcript segments`);
-          }
+          // Use completeTranscription to handle everything including auto-split
+          get().completeTranscription(uploadId, segments, true);
         } catch (error) {
           console.error("Transcription failed:", error);
           set((state) => ({
@@ -336,6 +325,44 @@ const useUploadStore = create<IUploadStore>()(
               [uploadId]: "failed",
             },
           }));
+        }
+      },
+
+      completeTranscription: (
+        uploadId: string,
+        segments: TranscriptSegment[],
+        autoSplit = true
+      ) => {
+        set((state) => ({
+          transcriptions: {
+            ...state.transcriptions,
+            [uploadId]: segments,
+          },
+          transcriptionStatus: {
+            ...state.transcriptionStatus,
+            [uploadId]: "completed",
+          },
+        }));
+
+        // Load into TranscriptStore for display
+        if (segments.length > 0) {
+          useTranscriptStore.getState().initSegments(segments);
+
+          // Auto-split and add to timeline if enabled
+          // Note: For now, we'll only auto-split if explicitly requested
+          // The original audio is already on the timeline
+          if (autoSplit && segments.length > 1) {
+            const upload = get().uploads.find((u) => u.uploadId === uploadId || u.id === uploadId);
+            
+            if (upload) {
+              // TODO: Consider removing the original audio and replacing with segments
+              // For now, we'll just add the segments alongside the original
+              console.log(`Transcription complete for ${uploadId} with ${segments.length} segments`);
+              console.log("To apply auto-split, use the manual split button in the UI");
+            } else {
+              console.warn(`Upload ${uploadId} not found for auto-splitting`);
+            }
+          }
         }
       },
 
