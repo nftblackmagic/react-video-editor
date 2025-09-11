@@ -130,3 +130,4 @@ DATABASE_URL="postgresql://localhost:5432/video_editor"
 - ESLint is configured through Next.js - run `pnpm lint` to check for issues
 - No test framework is currently configured
 - Use playwright MCP to open a browser to localhost:3000 for testing
+- I will run the localhost from my side. Don't run it from claude

@@ -4,10 +4,11 @@ import { processUpload, type UploadCallbacks } from "@/utils/upload-service";
 import { isTranscribableMedia } from "@/utils/transcribe-service";
 import { TranscriptSegment } from "../transcript/types";
 import useTranscriptStore from "./use-transcript-store";
+import useProjectStore from "./use-project-store";
 import { dispatch } from "@designcombo/events";
 import { ADD_VIDEO, ADD_IMAGE, ADD_AUDIO } from "@designcombo/state";
 import { generateId } from "@designcombo/timeline";
-import { transcribeElevenLabs } from "@/app/actions/transcribe";
+import { transcribeElevenLabs } from "@/app/(edit)/actions/transcribe";
 import {
   addSegmentedMedia,
   SegmentSplitOptions,
@@ -352,13 +353,19 @@ const useUploadStore = create<IUploadStore>()(
           // Note: For now, we'll only auto-split if explicitly requested
           // The original audio is already on the timeline
           if (autoSplit && segments.length > 1) {
-            const upload = get().uploads.find((u) => u.uploadId === uploadId || u.id === uploadId);
-            
+            const upload = get().uploads.find(
+              (u) => u.uploadId === uploadId || u.id === uploadId
+            );
+
             if (upload) {
               // TODO: Consider removing the original audio and replacing with segments
               // For now, we'll just add the segments alongside the original
-              console.log(`Transcription complete for ${uploadId} with ${segments.length} segments`);
-              console.log("To apply auto-split, use the manual split button in the UI");
+              console.log(
+                `Transcription complete for ${uploadId} with ${segments.length} segments`
+              );
+              console.log(
+                "To apply auto-split, use the manual split button in the UI"
+              );
             } else {
               console.warn(`Upload ${uploadId} not found for auto-splitting`);
             }

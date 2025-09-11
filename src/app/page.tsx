@@ -1,6 +1,6 @@
 "use client";
-import Editor from "@/features/editor";
+import UploadLanding from "@/features/upload/UploadLanding";
 
 export default function Home() {
-	return <Editor />;
+	return <UploadLanding />;
 }
