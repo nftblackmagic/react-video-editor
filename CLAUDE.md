@@ -36,6 +36,7 @@ This is a React-based video editor built with Next.js 15 and Remotion. The appli
 
 - **Next.js 15** with App Router for the framework
 - **Remotion 4.0** for video rendering and composition
+- **DesignCombo SDK** for timeline and state management (`@designcombo/state`, `@designcombo/events`, `@designcombo/timeline`)
 - **Zustand** for state management across multiple stores
 - **TypeScript** for type safety
 - **Tailwind CSS 4** with PostCSS for styling
@@ -58,17 +59,21 @@ The main editor is composed of three primary areas:
 Multiple Zustand stores handle different concerns:
 
 - `use-store.ts`: Main timeline and composition state
-- `use-data-state.ts`: Asset and media data management  
+- `use-data-state.ts`: Asset and media data management
+- `use-project-store.ts`: Project management with localStorage persistence
 - `use-layout-store.ts`: UI layout and panel states
 - `use-upload-store.ts`: File upload handling
 - `use-transcript-store.ts`: Transcript segment management
+- `use-crop-store.ts`: Image/video cropping state
+- `use-download-state.ts`: Download operation tracking
+- `use-folder.ts`: Folder organization for assets
 
 #### 3. Video Rendering
 
 Remotion handles all video rendering through:
 
 - `player/composition.tsx`: Main composition definition
-- `player/video-player.tsx`: Preview player component
+- `player/player.tsx`: Preview player component
 - API routes in `/app/api/render/` for server-side rendering
 
 #### 4. Database Schema
@@ -82,9 +87,10 @@ PostgreSQL database using Drizzle ORM with tables:
 
 #### 5. API Integration
 
-- **Pexels API** (`/app/api/pexels/`): Stock media integration (requires `PEXELS_API_KEY`)
-- **Combo.sh** (`/app/api/render/`): External rendering service (requires `COMBO_SH_JWT`)
-- **ElevenLabs** (`/app/actions/transcribe.ts`): Voice transcription (requires `NEXT_PUBLIC_ELEVENLABS_API_KEY`)
+- **Pexels API** (`/app/api/pexels/`): Stock media integration
+- **Combo.sh** (`/app/api/render/`): External rendering service
+- **ElevenLabs** (`/app/actions/transcribe.ts`): Voice transcription
+- **Bytescale** (`/utils/bytescale-upload.ts`, `/utils/bytescale-url.ts`): File upload and CDN service
 - File uploads use presigned URLs through `/app/api/uploads/`
 
 ### Important Patterns
@@ -92,36 +98,54 @@ PostgreSQL database using Drizzle ORM with tables:
 1. **Component Organization**: UI primitives in `/components/ui/` use shadcn/ui patterns
 2. **Responsive Design**: Desktop and mobile layouts handled separately in the main editor
 3. **Timeline Integration**: Uses `@designcombo/timeline` and `@designcombo/events` packages
-4. **Type Safety**: Comprehensive TypeScript types in `types/` directories
-5. **Path Aliases**: Use `@/` for src directory imports
-6. **Segment Management**: New `segment-splitter.ts` utility for transcript segment operations
+4. **DesignCombo Event System**: 
+   - All timeline manipulations use the event-driven architecture from `@designcombo/state`
+   - Events are dispatched using `dispatch` from `@designcombo/events`
+   - Common events: ADD_TEXT, ADD_IMAGE, ADD_VIDEO, ADD_AUDIO, EDIT_OBJECT, LAYER_SELECT, etc.
+   - See `/docs/designcombo-state-reference.md` for complete event reference
+5. **Type Safety**: Comprehensive TypeScript types in `types/` directories
+6. **Path Aliases**: Use `@/` for src directory imports
+7. **Segment Management**: `segment-splitter.ts` utility for advanced transcript segment operations (split, merge, adjust timing)
+8. **File Upload**: Bytescale integration for efficient file uploads with progress tracking
 
 ### Development Guidelines
 
 1. **State Updates**: Always use the appropriate Zustand store for state management
-2. **Remotion Components**: Video elements must be React components compatible with Remotion
-3. **Timeline Operations**: Use the timeline store's methods for track and element manipulation
-4. **File Uploads**: Handle through the upload store with presigned URL pattern
-5. **Styling**: Use Tailwind CSS classes; custom styles go in component-specific CSS modules
-6. **Database Operations**: Use Drizzle queries in `/src/db/queries/` for database access
-7. **Transcript Editing**: Use TranscriptEditor component for segment editing with timeline sync
+2. **DesignCombo SDK Usage**: 
+   - **IMPORTANT**: Always refer to `/docs/designcombo-state-reference.md` when working with DesignCombo SDK events
+   - Use `dispatch` from `@designcombo/events` for all timeline operations
+   - Follow event patterns from the reference documentation for adding media, editing objects, and managing layers
+   - Validate DESIGN_LOAD payloads using the validation utilities before dispatch
+3. **Remotion Components**: Video elements must be React components compatible with Remotion
+4. **Timeline Operations**: Use the timeline store's methods for track and element manipulation
+5. **File Uploads**: Handle through the upload store with Bytescale service
+6. **Styling**: Use Tailwind CSS classes; custom styles go in component-specific CSS modules
+7. **Database Operations**: Use Drizzle queries in `/src/db/queries/` for database access
+8. **Transcript Editing**: Use TranscriptEditor component for segment editing with timeline sync
+9. **Project Persistence**: Projects auto-save to localStorage via project store
 
 ### Environment Variables
 
 Required for full functionality:
 
 ```env
+# Database connection
+DATABASE_URL="postgresql://localhost:5432/video_editor"
+
 # Stock media access
 PEXELS_API_KEY=""
 
-# Video rendering service  
+# Video rendering service
 COMBO_SH_JWT=""
 
 # Voice transcription
 NEXT_PUBLIC_ELEVENLABS_API_KEY=""
 
-# Database connection
-DATABASE_URL="postgresql://localhost:5432/video_editor"
+# Bytescale file upload service
+BYTESCALE_ACCOUNT_ID=""
+BYTESCALE_API_KEY=""
+NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID=""
+NEXT_PUBLIC_BYTESCALE_API_KEY=""
 ```
 
 ### Code Quality
@@ -129,5 +153,10 @@ DATABASE_URL="postgresql://localhost:5432/video_editor"
 - Biome is configured for formatting with tabs and double quotes - run `pnpm format` before committing
 - ESLint is configured through Next.js - run `pnpm lint` to check for issues
 - No test framework is currently configured
-- Use playwright MCP to open a browser to localhost:3000 for testing
-- I will run the localhost from my side. Don't run it from claude
+- The user will run `pnpm dev` manually - do not run `pnpm dev` yourself
+- You can use playwright MCP to open a browser to localhost:3000 for testing
+
+### Documentation References
+
+- **DesignCombo SDK**: `/docs/designcombo-state-reference.md` - Complete reference for all DesignCombo events, patterns, and usage examples
+- When implementing timeline features, always consult the DesignCombo reference documentation first
