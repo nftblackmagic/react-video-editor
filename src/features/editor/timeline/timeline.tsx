@@ -250,7 +250,7 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 
 		const time = unitsToTimeMs(units, scale.zoom);
 		playerRef?.current?.seekTo((time * fps) / 1000);
-		
+
 		// Dispatch TIMELINE_SEEK event for transcript sync
 		dispatch(TIMELINE_SEEK, { payload: { time } });
 	};

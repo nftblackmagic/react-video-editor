@@ -1,16 +1,28 @@
-import Editor from "@/features/editor";
+import EditorWithData from "@/features/editor/editor-with-data";
+import { loadProjectFromServer } from "../actions/load-project";
+import { prepareProjectDataForEditor } from "@/utils/prepare-project-data";
 
 export default async function Page({
 	params,
 }: { params: Promise<{ id: string[] }> }) {
 	const { id } = await params;
+	const projectId = id[0];
+
+	// Server-First: Try to load from server/database
+	const serverResult = await loadProjectFromServer(projectId);
 	
-	// If only one ID provided, treat it as projectId for new flow
-	if (id.length === 1) {
-		return <Editor projectId={id[0]} />;
-	}
-	
-	// Otherwise use old logic for backward compatibility
-	const [sceneId, tempId] = id;
-	return <Editor id={sceneId} tempId={tempId} />;
+	// Prepare the data if loaded from server
+	const preparedData = serverResult.data 
+		? prepareProjectDataForEditor(serverResult.data)
+		: null;
+
+	// Pass server data to client component
+	// Client component will handle fallback to localStorage if needed
+	return (
+		<EditorWithData 
+			projectId={projectId}
+			serverData={preparedData}
+			dataSource={serverResult.source}
+		/>
+	);
 }

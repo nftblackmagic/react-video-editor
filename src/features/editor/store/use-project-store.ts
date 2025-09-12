@@ -5,8 +5,10 @@ import {
 	type ProjectData,
 	type ProjectMedia,
 	type ProjectListItem,
+	type ProjectUpload,
 } from "@/utils/project-storage";
 import { TranscriptSegment } from "../transcript/types";
+import useUploadStore from "./use-upload-store";
 
 interface ProjectStore {
 	// Current project state
@@ -18,19 +20,24 @@ interface ProjectStore {
 	projects: ProjectListItem[];
 
 	// Actions
-	createProject: (
-		initialMedia: ProjectMedia,
-		name?: string
-	) => ProjectData;
+	createProject: (initialMedia: ProjectMedia, name?: string) => ProjectData;
 	loadProject: (projectId: string) => boolean;
 	saveCurrentProject: () => void;
 	updateProjectName: (name: string) => void;
 	updateProjectTimeline: (timeline: Partial<ProjectData["timeline"]>) => void;
 	updateProjectSettings: (settings: Partial<ProjectData["settings"]>) => void;
 	updateProjectTranscripts: (transcripts: TranscriptSegment[]) => void;
+	updateInitialMediaUrl: (url: string) => void;
 	deleteProject: (projectId: string) => void;
 	refreshProjectList: () => void;
 	clearCurrentProject: () => void;
+
+	// Upload management
+	addProjectUpload: (upload: ProjectUpload) => void;
+	addProjectUploads: (uploads: ProjectUpload[]) => void;
+	getProjectUploads: () => ProjectUpload[];
+	removeProjectUpload: (uploadId: string) => void;
+	loadProjectUploads: () => void;
 }
 
 const useProjectStore = create<ProjectStore>()(
@@ -67,6 +74,10 @@ const useProjectStore = create<ProjectStore>()(
 					projectData: project,
 					initialMediaUrl: project.initialMedia?.url || null,
 				});
+
+				// Load project uploads into the upload store
+				get().loadProjectUploads();
+
 				return true;
 			},
 
@@ -129,10 +140,30 @@ const useProjectStore = create<ProjectStore>()(
 				set({ projectData: updated });
 			},
 
+			// Update initial media URL after upload completes
+			updateInitialMediaUrl: (url: string) => {
+				const { currentProjectId, projectData } = get();
+				if (!currentProjectId || !projectData) return;
+
+				const updated = {
+					...projectData,
+					initialMedia: {
+						...projectData.initialMedia,
+						url,
+						isPending: false,
+					},
+				};
+				projectStorage.saveProject(updated);
+				set({
+					projectData: updated,
+					initialMediaUrl: url,
+				});
+			},
+
 			// Delete project
 			deleteProject: (projectId: string) => {
 				projectStorage.deleteProject(projectId);
-				
+
 				// If deleting current project, clear it
 				if (get().currentProjectId === projectId) {
 					set({
@@ -141,7 +172,7 @@ const useProjectStore = create<ProjectStore>()(
 						initialMediaUrl: null,
 					});
 				}
-				
+
 				get().refreshProjectList();
 			},
 
@@ -159,14 +190,91 @@ const useProjectStore = create<ProjectStore>()(
 					initialMediaUrl: null,
 				});
 			},
+
+			// Add single upload to project
+			addProjectUpload: (upload: ProjectUpload) => {
+				const { currentProjectId } = get();
+				if (!currentProjectId) return;
+
+				projectStorage.addProjectUpload(currentProjectId, upload);
+				// Update local state
+				const project = projectStorage.getProject(currentProjectId);
+				if (project) {
+					set({ projectData: project });
+				}
+			},
+
+			// Add multiple uploads to project
+			addProjectUploads: (uploads: ProjectUpload[]) => {
+				const { currentProjectId } = get();
+				if (!currentProjectId) return;
+
+				projectStorage.addProjectUploads(currentProjectId, uploads);
+				// Update local state
+				const project = projectStorage.getProject(currentProjectId);
+				if (project) {
+					set({ projectData: project });
+				}
+			},
+
+			// Get project uploads
+			getProjectUploads: () => {
+				const { currentProjectId } = get();
+				if (!currentProjectId) return [];
+
+				return projectStorage.getProjectUploads(currentProjectId);
+			},
+
+			// Remove upload from project
+			removeProjectUpload: (uploadId: string) => {
+				const { currentProjectId } = get();
+				if (!currentProjectId) return;
+
+				projectStorage.removeProjectUpload(currentProjectId, uploadId);
+				// Update local state
+				const project = projectStorage.getProject(currentProjectId);
+				if (project) {
+					set({ projectData: project });
+				}
+			},
+
+			// Load project uploads into upload store
+			loadProjectUploads: () => {
+				const { currentProjectId } = get();
+				if (!currentProjectId) return;
+
+				const projectUploads =
+					projectStorage.getProjectUploads(currentProjectId);
+
+				// Convert project uploads to upload store format
+				const uploadsForStore = projectUploads.map((upload) => ({
+					id: upload.id,
+					fileName: upload.fileName,
+					filePath: upload.filePath,
+					url: upload.url,
+					type: upload.contentType?.split("/")[0] || "unknown",
+					contentType: upload.contentType,
+					fileSize: upload.fileSize,
+					folder: upload.folder,
+					metadata: {
+						...upload.metadata,
+						uploadedUrl: upload.url,
+						bytescaleUrl: upload.url,
+					},
+					uploadId: upload.id,
+				}));
+
+				// Set uploads in upload store
+				useUploadStore.getState().setUploads(uploadsForStore);
+			},
 		}),
 		{
 			name: "project-store",
 			partialize: (state) => ({
 				currentProjectId: state.currentProjectId,
 			}),
-		}
-	)
+		},
+	),
 );
 
 export default useProjectStore;

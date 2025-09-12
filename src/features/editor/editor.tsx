@@ -17,8 +17,6 @@ import {
 import { ImperativePanelHandle } from "react-resizable-panels";
 import { getCompactFontData, loadFonts } from "./utils/fonts";
 import { SECONDARY_FONT, SECONDARY_FONT_URL } from "./constants/constants";
-import MenuList from "./menu-list";
-import { MenuItem } from "./menu-item";
 import { ControlItem } from "./control-item";
 import CropModal from "./crop-modal/crop-modal";
 import useDataState from "./store/use-data-state";
@@ -36,6 +34,9 @@ import { generateId } from "@designcombo/timeline";
 import useProjectStore from "./store/use-project-store";
 import useTranscriptStore from "./store/use-transcript-store";
 import { useRouter } from "next/navigation";
+import { loadTimelineGranularly } from "./utils/granular-dispatch";
+import { TranscriptSegment } from "./transcript/types";
+import { ProjectMedia } from "@/utils/project-storage";
 
 const stateManager = new StateManager({
   size: {
@@ -44,23 +45,43 @@ const stateManager = new StateManager({
   },
 });
 
+interface EditorProps {
+  // Project identification
+  projectId: string;
+
+  // Initial data passed from server/parent
+  projectData: {
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  initialMedia: ProjectMedia;
+  initialTracks?: any[];
+  initialTrackItems?: Record<string, any>;
+  initialTransitions?: Record<string, any>;
+  initialCompositions?: any[];
+  initialTranscripts?: TranscriptSegment[];
+  initialSettings?: Record<string, any>;
+  initialUploads?: any[];
+}
+
 const Editor = ({
-  tempId,
-  id,
   projectId,
-}: {
-  tempId?: string;
-  id?: string;
-  projectId?: string;
-}) => {
-  const [projectName, setProjectName] = useState<string>("Untitled video");
-  const {
-    loadProject,
-    projectData,
-    initialMediaUrl,
-    updateProjectTimeline,
-    updateProjectTranscripts,
-  } = useProjectStore();
+  projectData,
+  initialMedia,
+  initialTracks = [],
+  initialTrackItems = {},
+  initialTransitions = {},
+  initialCompositions = [],
+  initialTranscripts = [],
+  initialSettings = {},
+  initialUploads = [],
+}: EditorProps) => {
+  const [projectName, setProjectName] = useState<string>(
+    projectData?.name || "Untitled video"
+  );
+  const { updateProjectTimeline, updateProjectTranscripts } = useProjectStore();
   const router = useRouter();
   const { segments, initSegments } = useTranscriptStore();
   const { scene } = useSceneStore();
@@ -77,6 +98,7 @@ const Editor = ({
   const { activeIds } = useStore();
   const [loaded, setLoaded] = useState(false);
   const [trackItem, setTrackItem] = useState<ITrackItem | null>(null);
+  const [timelineInitialized, setTimelineInitialized] = useState(false);
   const {
     setTrackItem: setLayoutTrackItem,
     setFloatingControl,
@@ -87,98 +109,123 @@ const Editor = ({
 
   useTimelineEvents();
 
-  // Load project from localStorage if projectId is provided
+  // Initialize timeline with granular loading and verification
   useEffect(() => {
-    if (projectId) {
-      // Clear previous load flags when mounting with a new project
-      localStorage.removeItem(`media-added-${projectId}`);
-      localStorage.removeItem(`timeline-loaded-${projectId}`);
+    if (!timeline || timelineInitialized) return;
 
-      const success = loadProject(projectId);
-      if (!success) {
-        console.error("Failed to load project, redirecting to home");
-        router.push("/");
-        return;
+    // Load timeline data granularly
+    const hasData =
+      initialTracks.length > 0 || Object.keys(initialTrackItems).length > 0;
+
+    if (hasData) {
+      // Load with proper validation
+      const results = loadTimelineGranularly({
+        tracks: initialTracks,
+        trackItems: initialTrackItems,
+        transitions: initialTransitions,
+        compositions: initialCompositions,
+        fps: initialSettings?.fps,
+        size:
+          initialSettings?.width && initialSettings?.height
+            ? { width: initialSettings.width, height: initialSettings.height }
+            : undefined,
+      });
+
+      // Verify the load was successful
+      if (results.valid) {
+        setTimelineInitialized(true);
+      } else {
+        console.error(
+          "Failed to load timeline data:",
+          results.errors || results.error
+        );
       }
+    } else {
+      // Mark as initialized even if no data to prevent re-runs
+      setTimelineInitialized(true);
+    }
+  }, [
+    timeline,
+    initialTracks,
+    initialTrackItems,
+    initialTransitions,
+    initialCompositions,
+    initialSettings,
+    timelineInitialized,
+  ]);
+
+  // Handle initial media separately
+  useEffect(() => {
+    if (!initialMedia || !timeline) return;
+
+    const { type, url, isPending } = initialMedia;
+
+    // Skip if media is pending upload
+    if (isPending || !url) return;
+
+    // Check if media already exists in trackItems to prevent duplicates
+    const mediaExists = Object.values(trackItemsMap).some(
+      (item: any) => item?.details?.src === url
+    );
+
+    if (mediaExists) {
+      return; // Skip if media already exists
     }
 
-    // Cleanup function to clear flags when unmounting
-    return () => {
-      if (projectId) {
-        localStorage.removeItem(`media-added-${projectId}`);
-        localStorage.removeItem(`timeline-loaded-${projectId}`);
-      }
-    };
-  }, [projectId, loadProject, router]);
+    // Only add if we have an empty timeline (no tracks with items)
+    const hasExistingContent = tracks.some(
+      (track: any) => track.items && track.items.length > 0
+    );
 
-  // Set project name and add initial media when project data is loaded
-  useEffect(() => {
-    if (projectData) {
-      setProjectName(projectData.name);
-
-      // Add initial media to timeline if it exists and timeline is ready
-      if (projectData.initialMedia && timeline) {
-        const { type, url } = projectData.initialMedia;
-
-        // Check if media already added to prevent duplicates
-        const mediaAdded = localStorage.getItem(`media-added-${projectId}`);
-        if (!mediaAdded && url) {
-          try {
-            // Check if the URL is a blob URL that may have expired
-            const isBlob = url.startsWith("blob:");
-            if (isBlob) {
-              console.warn(
-                "Blob URL detected, it may have expired. Skipping initial media load."
-              );
-              // Mark as added to prevent repeated attempts
-              localStorage.setItem(`media-added-${projectId}`, "true");
-              return;
-            }
-
-            // Dispatch appropriate action based on media type
-            if (type === "video") {
-              dispatch(ADD_VIDEO, {
-                payload: {
-                  id: generateId(),
-                  details: {
-                    src: url,
-                  },
-                  metadata: {
-                    previewUrl:
-                      "https://cdn.designcombo.dev/caption_previews/static_preset1.webp",
-                  },
-                },
-                options: {
-                  resourceId: "main",
-                  scaleMode: "fit",
-                },
-              });
-            } else if (type === "audio") {
-              dispatch(ADD_AUDIO, {
-                payload: {
-                  id: generateId(),
-                  type: "audio",
-                  details: {
-                    src: url,
-                  },
-                  metadata: {},
-                },
-                options: {},
-              });
-            }
-            // Mark as added to prevent re-adding on remount
-            localStorage.setItem(`media-added-${projectId}`, "true");
-          } catch (error) {
-            console.error("Error adding initial media:", error);
-            // Mark as added to prevent repeated attempts
-            localStorage.setItem(`media-added-${projectId}`, "true");
-          }
-        }
-      }
+    if (hasExistingContent) {
+      return; // Skip if timeline already has content
     }
-  }, [projectData, timeline, projectId]);
 
-  // Save timeline state to project whenever it changes
+    try {
+      // Dispatch appropriate action based on media type
+      if (type === "video") {
+        dispatch(ADD_VIDEO, {
+          payload: {
+            id: generateId(),
+            details: {
+              src: url,
+            },
+            metadata: {
+              previewUrl:
+                "https://cdn.designcombo.dev/caption_previews/static_preset1.webp",
+            },
+          },
+          options: {
+            resourceId: "main",
+            scaleMode: "fit",
+          },
+        });
+      } else if (type === "audio") {
+        dispatch(ADD_AUDIO, {
+          payload: {
+            id: generateId(),
+            type: "audio",
+            details: {
+              src: url,
+            },
+            metadata: {},
+          },
+          options: {},
+        });
+      }
+    } catch (error) {
+      console.error("Error adding initial media:", error);
+    }
+  }, [initialMedia, timeline, trackItemsMap, tracks]);
+
+  // Initialize transcripts
+  useEffect(() => {
+    if (initialTranscripts && initialTranscripts.length > 0) {
+      initSegments(initialTranscripts);
+    }
+  }, [initialTranscripts, initSegments]);
+
+  // Save timeline state to project store (debounced)
   useEffect(() => {
     if (
       projectId &&
@@ -186,19 +233,19 @@ const Editor = ({
       tracks &&
       tracks.length > 0 &&
       trackItemsMap &&
-      typeof trackItemsMap === "object" &&
-      trackItemsMap !== null &&
       Object.keys(trackItemsMap).length > 0
     ) {
-      // Debounce saving to avoid too many writes
       const timeoutId = setTimeout(() => {
         updateProjectTimeline({
           tracks: tracks || [],
-          trackItems: trackItemsMap || {},
-          transitions: transitionsMap || {},
+          trackItemsMap: trackItemsMap || {},
+          trackItemIds: Object.keys(trackItemsMap || {}),
+          transitionsMap: transitionsMap || {},
+          transitionIds: Object.keys(transitionsMap || {}),
           compositions: compositions || [],
+          duration: timeline.duration,
         });
-      }, 1000); // Save after 1 second of no changes
+      }, 1000);
 
       return () => clearTimeout(timeoutId);
     }
@@ -212,214 +259,33 @@ const Editor = ({
     updateProjectTimeline,
   ]);
 
-  // Load timeline state from project when project data is loaded
-  useEffect(() => {
-    if (projectData && timeline) {
-      // Check if we have valid timeline data to load
-      const hasValidTracks =
-        projectData.timeline?.tracks &&
-        Array.isArray(projectData.timeline.tracks) &&
-        projectData.timeline.tracks.length > 0;
-
-      const hasValidTrackItems =
-        projectData.timeline?.trackItems &&
-        typeof projectData.timeline.trackItems === "object" &&
-        projectData.timeline.trackItems !== null &&
-        Object.keys(projectData.timeline.trackItems).length > 0;
-
-      if (hasValidTracks && hasValidTrackItems) {
-        // Check if we've already loaded this project's timeline
-        const timelineLoaded = localStorage.getItem(
-          `timeline-loaded-${projectId}`
-        );
-        if (!timelineLoaded) {
-          try {
-            // Ensure all objects are properly initialized
-            // Deep clone to avoid any reference issues
-            const clonedTracks = JSON.parse(
-              JSON.stringify(projectData.timeline.tracks || [])
-            );
-            const clonedTrackItems = JSON.parse(
-              JSON.stringify(projectData.timeline.trackItems || {})
-            );
-
-            // Filter out expired blob URLs from track items
-            const itemsToRemove: string[] = [];
-            for (const key in clonedTrackItems) {
-              const item = clonedTrackItems[key];
-              if (item?.details?.src && typeof item.details.src === "string") {
-                if (item.details.src.startsWith("blob:")) {
-                  console.error(
-                    `⚠️ Media with expired blob URL detected for track item "${
-                      item.name || key
-                    }"`
-                  );
-                  console.error(`   Blob URL: ${item.details.src}`);
-                  itemsToRemove.push(key);
-                  // Remove the track item with expired blob URL
-                  delete clonedTrackItems[key];
-                }
-              }
-            }
-
-            // Remove items from tracks
-            if (itemsToRemove.length > 0) {
-              console.error(
-                `❌ Removed ${itemsToRemove.length} track item(s) with expired blob URLs`
-              );
-              console.error(`   Affected items: ${itemsToRemove.join(", ")}`);
-              for (const track of clonedTracks) {
-                if (track.items && Array.isArray(track.items)) {
-                  track.items = track.items.filter(
-                    (itemId: string) => !itemsToRemove.includes(itemId)
-                  );
-                }
-              }
-            }
-
-            const payload = {
-              tracks: clonedTracks,
-              trackItems: clonedTrackItems,
-              transitions: JSON.parse(
-                JSON.stringify(
-                  projectData.timeline.transitions &&
-                    typeof projectData.timeline.transitions === "object" &&
-                    projectData.timeline.transitions !== null
-                    ? projectData.timeline.transitions
-                    : {}
-                )
-              ),
-              compositions: JSON.parse(
-                JSON.stringify(
-                  Array.isArray(projectData.timeline.compositions)
-                    ? projectData.timeline.compositions
-                    : []
-                )
-              ),
-            };
-
-            // Validate payload before dispatching
-            // Only dispatch if we have track items remaining after filtering
-            if (
-              payload.tracks &&
-              payload.trackItems &&
-              Object.keys(payload.trackItems).length > 0
-            ) {
-              try {
-                // Restore timeline state from project
-                dispatch(DESIGN_LOAD, { payload });
-                // Mark as loaded to prevent re-loading
-                localStorage.setItem(`timeline-loaded-${projectId}`, "true");
-              } catch (dispatchError) {
-                console.error(
-                  "Error during DESIGN_LOAD dispatch:",
-                  dispatchError
-                );
-                console.error("Payload that caused error:", payload);
-              }
-            } else {
-              // Mark as loaded even if no items to prevent re-attempting
-              localStorage.setItem(`timeline-loaded-${projectId}`, "true");
-            }
-          } catch (error) {
-            console.error("Error loading timeline state:", error);
-          }
-        }
-      }
-    }
-  }, [projectData, timeline, projectId]);
-
-  // Load transcripts from project when project data is loaded
-  useEffect(() => {
-    if (projectData?.transcripts && projectData.transcripts.length > 0) {
-      // Load transcripts into the transcript store
-      initSegments(projectData.transcripts);
-    }
-  }, [projectData, initSegments]);
-
-  // Save transcripts to project whenever they change
+  // Save transcripts (debounced)
   useEffect(() => {
     if (projectId && segments.length > 0) {
-      // Debounce saving to avoid too many writes
       const timeoutId = setTimeout(() => {
         updateProjectTranscripts(segments);
-      }, 1000); // Save after 1 second of no changes
+      }, 1000);
 
       return () => clearTimeout(timeoutId);
     }
   }, [projectId, segments, updateProjectTranscripts]);
 
-  const { setCompactFonts, setFonts } = useDataState();
+  // Note: Legacy combo.sh and scene API support has been removed.
+  // All projects now use the unified projectId-based approach.
 
+  // Load scene from store if available
   useEffect(() => {
-    if (tempId) {
-      const fetchVideoJson = async () => {
-        try {
-          const response = await fetch(
-            `https://scheme.combo.sh/video-json/${id}`
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-
-          const payload = data.videoJson.json;
-          if (payload) {
-            dispatch(DESIGN_LOAD, { payload });
-          }
-        } catch (error) {
-          console.error("Error fetching video JSON:", error);
-        }
-      };
-      fetchVideoJson();
-    }
-
-    if (id) {
-      const fetchSceneById = async () => {
-        try {
-          const response = await fetch(`/api/scene/${id}`);
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          console.log("Fetched scene data:", data);
-
-          if (data.success && data.scene) {
-            // Set project name if available
-            if (data.project?.name) {
-              setProjectName(data.project.name);
-            }
-
-            // Load the scene content into the editor
-            if (data.scene.content) {
-              dispatch(DESIGN_LOAD, { payload: data.scene.content });
-            }
-          } else {
-            console.error("Failed to fetch scene:", data.error);
-          }
-        } catch (error) {
-          console.error("Error fetching scene by ID:", error);
-        }
-      };
-      fetchSceneById();
-    }
-  }, [id, tempId]);
-
-  useEffect(() => {
-    console.log("scene", scene);
-    console.log("timeline", timeline);
     if (scene && timeline) {
-      console.log("scene", scene);
       dispatch(DESIGN_LOAD, { payload: scene });
     }
   }, [scene, timeline]);
 
+  // Initialize fonts
   useEffect(() => {
+    const { setCompactFonts, setFonts } = useDataState.getState();
     setCompactFonts(getCompactFontData(FONTS));
     setFonts(FONTS);
-  }, []);
 
-  useEffect(() => {
     loadFonts([
       {
         name: SECONDARY_FONT,
@@ -428,6 +294,7 @@ const Editor = ({
     ]);
   }, []);
 
+  // Set initial timeline panel size
   useEffect(() => {
     const screenHeight = window.innerHeight;
     const desiredHeight = 300;
@@ -435,6 +302,7 @@ const Editor = ({
     timelinePanelRef.current?.resize(percentage);
   }, []);
 
+  // Handle timeline resize
   const handleTimelineResize = () => {
     const timelineContainer = document.getElementById("timeline-container");
     if (!timelineContainer) return;
@@ -449,7 +317,6 @@ const Editor = ({
       }
     );
 
-    // Trigger zoom recalculation when timeline is resized
     setTimeout(() => {
       sceneRef.current?.recalculateZoom();
     }, 100);
@@ -461,6 +328,7 @@ const Editor = ({
     return () => window.removeEventListener("resize", onResize);
   }, [timeline]);
 
+  // Handle track item selection
   useEffect(() => {
     if (activeIds.length === 1) {
       const [id] = activeIds;
@@ -473,8 +341,9 @@ const Editor = ({
       setTrackItem(null);
       setLayoutTrackItem(null);
     }
-  }, [activeIds, trackItemsMap]);
+  }, [activeIds, trackItemsMap, transitionsMap]);
 
+  // Reset controls on screen size change
   useEffect(() => {
     setFloatingControl("");
     setLabelControlItem("");
@@ -485,7 +354,6 @@ const Editor = ({
     setLoaded(true);
   }, []);
 
-  // State for showing/hiding transcript
   const [showTranscript] = useState(true);
 
   return (
@@ -498,19 +366,11 @@ const Editor = ({
         setProjectName={setProjectName}
       />
       <div className="flex flex-1">
-        {/* {isLargeScreen && (
-					<div className="bg-muted  flex flex-none border-r border-border/80 h-[calc(100vh-44px)]">
-						<MenuList />
-						<MenuItem />
-					</div>
-				)} */}
         <ResizablePanelGroup style={{ flex: 1 }} direction="vertical">
           <ResizablePanel className="relative" defaultSize={70}>
             <FloatingControl />
             <div className="flex h-full flex-1">
-              {/* Scene and Transcript side by side */}
               <div className="flex w-full h-full">
-                {/* Scene/Preview area */}
                 <div
                   style={{
                     width:
@@ -526,7 +386,6 @@ const Editor = ({
                   <Scene ref={sceneRef} stateManager={stateManager} />
                 </div>
 
-                {/* Transcript panel - only on large screens */}
                 {showTranscript && isLargeScreen && (
                   <div style={{ width: "400px", height: "100%" }}>
                     <TranscriptEditor />

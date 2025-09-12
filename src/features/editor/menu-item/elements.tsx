@@ -607,11 +607,12 @@ const AllVisualizers = ({
 							))}
 						</div>
 					) : (
-						renderItems(
-							visualizerGroups.find(
+						(() => {
+							const group = visualizerGroups.find(
 								(group) => group.category === selectedCategoryVisualizers,
-							)!,
-						)
+							);
+							return group ? renderItems(group) : null;
+						})()
 					)
 				) : (
 					selectedGroup && renderItems(selectedGroup)

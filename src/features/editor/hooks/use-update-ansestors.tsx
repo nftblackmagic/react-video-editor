@@ -21,14 +21,14 @@ export default function useUpdateAnsestors({
 	}, [playing, trackItemIds, activeIds]);
 
 	useEffect(() => {
-		if (playerRef && playerRef.current) {
+		if (playerRef?.current) {
 			playerRef.current.addEventListener(
 				"seeked",
 				updateAnsestorsPointerEvents,
 			);
 		}
 		return () => {
-			if (playerRef && playerRef.current) {
+			if (playerRef?.current) {
 				playerRef.current.removeEventListener(
 					"seeked",
 					updateAnsestorsPointerEvents,
@@ -70,7 +70,7 @@ export default function useUpdateAnsestors({
 			'[data-track-item="transition-element"]',
 		);
 
-		elements.forEach((element) => {
+		for (const element of elements) {
 			let currentElement = element;
 			// Traverse up the DOM tree and collect the ancestors
 			while (currentElement.parentElement?.className !== "__remotion-player") {
@@ -83,6 +83,6 @@ export default function useUpdateAnsestors({
 					// }
 				}
 			}
-		});
+		}
 	};
 }

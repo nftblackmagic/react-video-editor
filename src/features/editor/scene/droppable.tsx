@@ -42,7 +42,7 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 	}, []);
 
 	const onDragEnter = useCallback(
-		(e: React.DragEvent<HTMLDivElement>) => {
+		(e: React.DragEvent<HTMLElement>) => {
 			e.preventDefault();
 			try {
 				const draggedDataString = e.dataTransfer?.types[0] as string;
@@ -62,7 +62,7 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 	);
 
 	const onDragOver = useCallback(
-		(e: React.DragEvent<HTMLDivElement>) => {
+		(e: React.DragEvent<HTMLElement>) => {
 			e.preventDefault();
 			if (isPointerInside) {
 				setIsDraggingOver(true);
@@ -73,7 +73,7 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 	);
 
 	const onDrop = useCallback(
-		(e: React.DragEvent<HTMLDivElement>) => {
+		(e: React.DragEvent<HTMLElement>) => {
 			if (!isDraggingOver) return;
 			e.preventDefault();
 			setIsDraggingOver(false);
@@ -82,7 +82,7 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 			try {
 				const draggedDataString = e.dataTransfer?.types[0] as string;
 				const draggedData = JSON.parse(
-					e.dataTransfer!.getData(draggedDataString),
+					e.dataTransfer?.getData(draggedDataString) || "",
 				);
 				handleDrop(draggedData);
 			} catch (error) {
@@ -93,7 +93,7 @@ const useDragAndDrop = (onDragStateChange?: (isDragging: boolean) => void) => {
 	);
 
 	const onDragLeave = useCallback(
-		(e: React.DragEvent<HTMLDivElement>) => {
+		(e: React.DragEvent<HTMLElement>) => {
 			e.preventDefault();
 			if (!e.currentTarget.contains(e.relatedTarget as Node)) {
 				setIsDraggingOver(false);
@@ -118,7 +118,7 @@ export const DroppableArea: React.FC<DroppableAreaProps> = ({
 		useDragAndDrop(onDragStateChange);
 
 	return (
-		<div
+		<section
 			id={id}
 			onDragEnter={onDragEnter}
 			onDrop={onDrop}
@@ -126,10 +126,9 @@ export const DroppableArea: React.FC<DroppableAreaProps> = ({
 			onDragLeave={onDragLeave}
 			className={className}
 			style={style}
-			role="region"
 			aria-label="Droppable area for images, videos, and audio"
 		>
 			{children}
-		</div>
+		</section>
 	);
 };

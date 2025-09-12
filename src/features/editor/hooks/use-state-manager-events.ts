@@ -3,6 +3,7 @@ import StateManager from "@designcombo/state";
 import useStore from "../store/use-store";
 import { IAudio, ITrackItem, IVideo } from "@designcombo/types";
 import { audioDataManager } from "../player/lib/audio-data";
+import { createStateSnapshot, compareSnapshots } from "../utils/state-validation";
 
 // Global registry to prevent duplicate subscriptions
 const subscriptionRegistry = new WeakMap<StateManager, Set<string>>();
@@ -10,8 +11,9 @@ const subscriptionRegistry = new WeakMap<StateManager, Set<string>>();
 export const useStateManagerEvents = (stateManager: StateManager) => {
 	const { setState } = useStore();
 	const isSubscribedRef = useRef(false);
+	const lastSnapshotRef = useRef<any>(null);
 
-	// Handle track item updates
+	// Handle track item updates with logging
 	const handleTrackItemUpdate = useCallback(() => {
 		const currentState = stateManager.getState();
 		const mergedTrackItemsDeatilsMap = currentState.trackItemsMap;
@@ -20,6 +22,8 @@ export const useStateManagerEvents = (stateManager: StateManager) => {
 				return item.type === "video" || item.type === "audio";
 			},
 		);
+		
+		
 		audioDataManager.setItems(
 			filterTrakcItems as (ITrackItem & (IVideo | IAudio))[],
 		);
@@ -41,6 +45,8 @@ export const useStateManagerEvents = (stateManager: StateManager) => {
 				return item.type === "video" || item.type === "audio";
 			},
 		);
+		
+		
 		audioDataManager.validateUpdateItems(
 			filterTrakcItems as (ITrackItem & (IVideo | IAudio))[],
 		);
@@ -59,7 +65,6 @@ export const useStateManagerEvents = (stateManager: StateManager) => {
 	}, [stateManager, setState]);
 
 	useEffect(() => {
-		console.log("useStateManagerEvents", stateManager);
 		// Check if we already have subscriptions for this stateManager
 		if (!subscriptionRegistry.has(stateManager)) {
 			subscriptionRegistry.set(stateManager, new Set());
@@ -76,6 +81,7 @@ export const useStateManagerEvents = (stateManager: StateManager) => {
 
 		registry.add(hookId);
 		isSubscribedRef.current = true;
+		
 
 		// Subscribe to state update details
 		const resizeDesignSubscription = stateManager.subscribeToUpdateStateDetails(
@@ -89,8 +95,9 @@ export const useStateManagerEvents = (stateManager: StateManager) => {
 			setState(newState);
 		});
 
-		// Subscribe to general state changes
+		// Subscribe to general state changes with logging
 		const tracksSubscription = stateManager.subscribeToState((newState) => {
+			
 			setState(newState);
 		});
 

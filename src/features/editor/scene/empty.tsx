@@ -12,7 +12,7 @@ const SceneEmpty = () => {
 	const { size } = useStore();
 
 	useEffect(() => {
-		const container = containerRef.current!;
+		const container = containerRef.current as HTMLDivElement;
 		const PADDING = 96;
 		const containerHeight = container.clientHeight - PADDING;
 		const containerWidth = container.clientWidth - PADDING;

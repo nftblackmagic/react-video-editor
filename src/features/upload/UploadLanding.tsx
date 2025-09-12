@@ -106,21 +106,23 @@ const UploadLanding = () => {
 			addPendingUploads([uploadObject]);
 
 			// Create project with initial media info
+			// Don't use blob URL for persistence - it will expire on page reload
 			const initialMedia = {
 				url: selectedFile
-					? URL.createObjectURL(selectedFile)
+					? "" // Will be updated after Bytescale upload completes
 					: videoUrl.trim(),
-				type: (selectedFile?.type.startsWith("video/")
-					? "video"
-					: "audio") as "video" | "audio",
+				type: (selectedFile?.type.startsWith("video/") ? "video" : "audio") as
+					| "video"
+					| "audio",
 				uploadId: uploadId,
 				fileName: selectedFile?.name,
 				fileSize: selectedFile?.size,
+				isPending: !!selectedFile, // Flag to indicate upload is pending
 			};
 
 			const project = createProject(
 				initialMedia,
-				projectName || `Project ${new Date().toLocaleDateString()}`
+				projectName || `Project ${new Date().toLocaleDateString()}`,
 			);
 
 			// Start processing upload
@@ -211,7 +213,11 @@ const UploadLanding = () => {
 								type="file"
 								accept="audio/*,video/*"
 								onChange={handleFileChange}
-								style={{ display: 'none', position: 'absolute', left: '-9999px' }}
+								style={{
+									display: "none",
+									position: "absolute",
+									left: "-9999px",
+								}}
 							/>
 
 							{selectedFile ? (
@@ -244,7 +250,7 @@ const UploadLanding = () => {
 									)}
 								</div>
 							) : (
-								<div 
+								<div
 									className="text-center space-y-3 cursor-pointer"
 									onClick={triggerFileInput}
 								>
@@ -290,7 +296,7 @@ const UploadLanding = () => {
 						{/* Action Buttons Grid */}
 						<div className="grid grid-cols-2 gap-4 w-full max-w-2xl mt-8">
 							{/* Paste URL Card */}
-							<Card 
+							<Card
 								className="p-6 cursor-pointer hover:bg-muted/50 transition-colors border-muted-foreground/20"
 								onClick={() => {
 									const url = prompt("Paste a video link from YouTube:");
@@ -302,7 +308,9 @@ const UploadLanding = () => {
 							>
 								<div className="flex items-center gap-3">
 									<Link2 className="w-4 h-4 text-muted-foreground" />
-									<span className="text-sm">Paste a video link from YouTube</span>
+									<span className="text-sm">
+										Paste a video link from YouTube
+									</span>
 								</div>
 							</Card>
 
@@ -334,7 +342,8 @@ const UploadLanding = () => {
 						{/* Alternative text */}
 						<div className="text-center mt-8">
 							<p className="text-xs text-muted-foreground">
-								Paste from clipboard or press Enter to continue with an empty script
+								Paste from clipboard or press Enter to continue with an empty
+								script
 							</p>
 						</div>
 
@@ -377,7 +386,9 @@ const UploadLanding = () => {
 										onClick={() => router.push(`/${project.id}`)}
 									>
 										<div className="aspect-video bg-muted rounded mb-2" />
-										<p className="text-sm font-medium truncate">{project.name}</p>
+										<p className="text-sm font-medium truncate">
+											{project.name}
+										</p>
 										<p className="text-xs text-muted-foreground">
 											{new Date(project.updatedAt).toLocaleDateString()}
 										</p>

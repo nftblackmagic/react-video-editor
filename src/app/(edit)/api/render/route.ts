@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 
-
 export async function POST(request: Request) {
 	try {
 		const body = await request.json(); // Parse the request body
-
 
 		const response = await fetch("https://api.combo.sh/v1/render", {
 			method: "POST",

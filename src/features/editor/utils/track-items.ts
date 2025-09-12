@@ -13,14 +13,14 @@ export const groupTrackItems = (data: {
 	const itemTransitionMap = new Map<string, ITransition[]>();
 
 	// Initialize transition maps
-	Object.values(transitionsMap).forEach((transition) => {
+	for (const transition of Object.values(transitionsMap)) {
 		const { fromId, toId, kind } = transition;
-		if (kind === "none") return; // Skip transitions of kind 'none'
+		if (kind === "none") continue; // Skip transitions of kind 'none'
 		if (!itemTransitionMap.has(fromId)) itemTransitionMap.set(fromId, []);
 		if (!itemTransitionMap.has(toId)) itemTransitionMap.set(toId, []);
 		itemTransitionMap.get(fromId)?.push(transition);
 		itemTransitionMap.get(toId)?.push(transition);
-	});
+	}
 
 	const groups: GroupElement[][] = [];
 	const processed = new Set<string>();
@@ -67,14 +67,14 @@ export const groupTrackItems = (data: {
 	}
 
 	// Sort items within each group by display.from
-	groups.forEach((group) => {
+	for (const group of groups) {
 		group.sort((a, b) => {
 			if ("display" in a && "display" in b) {
 				return a.display.from - b.display.from;
 			}
 			return 0;
 		});
-	});
+	}
 
 	return groups;
 };

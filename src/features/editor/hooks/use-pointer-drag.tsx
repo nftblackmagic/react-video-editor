@@ -220,7 +220,7 @@ export function usePointerDrag<T>(
 			return {
 				x: e.clientX,
 				y: e.clientY,
-				state: dragStateRef.current!,
+				state: dragStateRef.current as T,
 				setState: setDragState,
 				deltaX,
 				deltaY,
@@ -228,7 +228,7 @@ export function usePointerDrag<T>(
 				startY,
 				startedAt,
 				initialEvent,
-				distance: Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)),
+				distance: Math.sqrt(deltaX ** 2 + deltaY ** 2),
 				event: e,
 			};
 		};
@@ -314,7 +314,7 @@ export function usePointerDrag<T>(
 					optionsRef.current.onBeforeStart?.({
 						x: e.clientX,
 						y: e.clientY,
-						state: state!,
+						state: state as T,
 						setState: setDragState,
 						deltaX: 0,
 						deltaY: 0,

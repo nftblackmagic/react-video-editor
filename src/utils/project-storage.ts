@@ -3,21 +3,37 @@ import { nanoid } from "nanoid";
 
 export interface ProjectMedia {
 	url: string;
-	type: "video" | "audio";
+	type: "video" | "audio" | "image";
 	uploadId: string;
 	fileName?: string;
 	fileSize?: number;
 	duration?: number;
+	isPending?: boolean; // Indicates if the media upload is still pending
+}
+
+export interface ProjectUpload {
+	id: string;
+	fileName: string;
+	filePath: string;
+	url: string;
+	contentType: string;
+	fileSize?: number;
+	uploadedAt: string;
+	folder?: string;
+	metadata?: any;
 }
 
 export interface ProjectData {
 	id: string;
 	name: string;
 	initialMedia: ProjectMedia;
+	uploads: ProjectUpload[]; // Store all project uploads
 	timeline: {
 		tracks: any[];
-		trackItems: Record<string, any>;
-		transitions: Record<string, any>;
+		trackItemsMap: Record<string, any>;
+		trackItemIds: string[];
+		transitionsMap: Record<string, any>;
+		transitionIds: string[];
 		compositions?: any[];
 		duration?: number;
 	};
@@ -55,10 +71,13 @@ class ProjectStorage {
 			id: projectId,
 			name: name || `Project ${new Date().toLocaleDateString()}`,
 			initialMedia,
+			uploads: [], // Initialize empty uploads array
 			timeline: {
 				tracks: [],
-				trackItems: {} as Record<string, any>,
-				transitions: {} as Record<string, any>,
+				trackItemsMap: {},
+				trackItemIds: [],
+				transitionsMap: {},
+				transitionIds: [],
 				compositions: [],
 				duration: 30000, // Default 30 seconds
 			},
@@ -169,7 +188,7 @@ class ProjectStorage {
 	 */
 	updateProjectTimeline(
 		projectId: string,
-		timeline: Partial<ProjectData["timeline"]>
+		timeline: Partial<ProjectData["timeline"]>,
 	): boolean {
 		const project = this.getProject(projectId);
 		if (!project) return false;
@@ -184,7 +203,7 @@ class ProjectStorage {
 	 */
 	updateProjectSettings(
 		projectId: string,
-		settings: Partial<ProjectData["settings"]>
+		settings: Partial<ProjectData["settings"]>,
 	): boolean {
 		const project = this.getProject(projectId);
 		if (!project) return false;
@@ -199,12 +218,87 @@ class ProjectStorage {
 	 */
 	updateProjectTranscripts(
 		projectId: string,
-		transcripts: TranscriptSegment[]
+		transcripts: TranscriptSegment[],
 	): boolean {
 		const project = this.getProject(projectId);
 		if (!project) return false;
 
 		project.transcripts = transcripts;
+		this.saveProject(project);
+		return true;
+	}
+
+	/**
+	 * Add upload to project
+	 */
+	addProjectUpload(projectId: string, upload: ProjectUpload): boolean {
+		const project = this.getProject(projectId);
+		if (!project) return false;
+
+		// Initialize uploads array if it doesn't exist (for backward compatibility)
+		if (!project.uploads) {
+			project.uploads = [];
+		}
+
+		// Check if upload already exists
+		const existingIndex = project.uploads.findIndex((u) => u.id === upload.id);
+		if (existingIndex !== -1) {
+			// Update existing upload
+			project.uploads[existingIndex] = upload;
+		} else {
+			// Add new upload
+			project.uploads.push(upload);
+		}
+
+		this.saveProject(project);
+		return true;
+	}
+
+	/**
+	 * Add multiple uploads to project
+	 */
+	addProjectUploads(projectId: string, uploads: ProjectUpload[]): boolean {
+		const project = this.getProject(projectId);
+		if (!project) return false;
+
+		// Initialize uploads array if it doesn't exist
+		if (!project.uploads) {
+			project.uploads = [];
+		}
+
+		// Add or update uploads
+		for (const upload of uploads) {
+			const existingIndex = project.uploads.findIndex(
+				(u) => u.id === upload.id,
+			);
+			if (existingIndex !== -1) {
+				project.uploads[existingIndex] = upload;
+			} else {
+				project.uploads.push(upload);
+			}
+		}
+
+		this.saveProject(project);
+		return true;
+	}
+
+	/**
+	 * Get project uploads
+	 */
+	getProjectUploads(projectId: string): ProjectUpload[] {
+		const project = this.getProject(projectId);
+		if (!project) return [];
+		return project.uploads || [];
+	}
+
+	/**
+	 * Remove upload from project
+	 */
+	removeProjectUpload(projectId: string, uploadId: string): boolean {
+		const project = this.getProject(projectId);
+		if (!project || !project.uploads) return false;
+
+		project.uploads = project.uploads.filter((u) => u.id !== uploadId);
 		this.saveProject(project);
 		return true;
 	}
@@ -241,11 +335,11 @@ class ProjectStorage {
 	 */
 	clearAllProjects(): void {
 		const keys = Object.keys(localStorage);
-		keys.forEach((key) => {
+		for (const key of keys) {
 			if (key.startsWith(PROJECT_PREFIX)) {
 				localStorage.removeItem(key);
 			}
-		});
+		}
 		localStorage.removeItem(PROJECTS_INDEX_KEY);
 	}
 
@@ -258,7 +352,7 @@ class ProjectStorage {
 
 	private updateIndex(
 		projectId: string,
-		updates: Partial<ProjectListItem>
+		updates: Partial<ProjectListItem>,
 	): void {
 		const projects = this.listProjects();
 		const index = projects.findIndex((p) => p.id === projectId);
@@ -276,10 +370,7 @@ class ProjectStorage {
 
 	private saveIndex(projects: ProjectListItem[]): void {
 		try {
-			localStorage.setItem(
-				PROJECTS_INDEX_KEY,
-				JSON.stringify({ projects })
-			);
+			localStorage.setItem(PROJECTS_INDEX_KEY, JSON.stringify({ projects }));
 		} catch (error) {
 			console.error("Failed to save project index:", error);
 		}
