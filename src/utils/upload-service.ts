@@ -5,7 +5,7 @@ import {
 	uploadFromUrl,
 	getBytescaleConfig,
 	generateUploadFolder,
-} from "./bytescale-upload";
+} from "./bytescale";
 
 export type UploadProgressCallback = (
 	uploadId: string,

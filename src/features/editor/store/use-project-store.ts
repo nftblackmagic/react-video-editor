@@ -6,7 +6,7 @@ import {
 	type ProjectMedia,
 	type ProjectListItem,
 	type ProjectUpload,
-} from "@/utils/project-storage";
+} from "@/utils/project";
 import { TranscriptSegment } from "../transcript/types";
 import useUploadStore from "./use-upload-store";
 

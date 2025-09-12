@@ -13,7 +13,7 @@ import {
 	addSegmentedMedia,
 	SegmentSplitOptions,
 } from "../utils/segment-splitter";
-import { projectStorage, type ProjectUpload } from "@/utils/project-storage";
+import { projectStorage, type ProjectUpload } from "@/utils/project";
 
 interface UploadFile {
 	id: string;

@@ -1,6 +1,6 @@
 import EditorWithData from "@/features/editor/editor-with-data";
 import { loadProjectFromServer } from "../actions/load-project";
-import { prepareProjectDataForEditor } from "@/utils/prepare-project-data";
+import { prepareProjectDataForEditor } from "@/utils/project";
 
 export default async function Page({
 	params,
@@ -10,16 +10,16 @@ export default async function Page({
 
 	// Server-First: Try to load from server/database
 	const serverResult = await loadProjectFromServer(projectId);
-	
+
 	// Prepare the data if loaded from server
-	const preparedData = serverResult.data 
+	const preparedData = serverResult.data
 		? prepareProjectDataForEditor(serverResult.data)
 		: null;
 
 	// Pass server data to client component
 	// Client component will handle fallback to localStorage if needed
 	return (
-		<EditorWithData 
+		<EditorWithData
 			projectId={projectId}
 			serverData={preparedData}
 			dataSource={serverResult.source}

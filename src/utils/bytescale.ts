@@ -1,7 +1,16 @@
 /**
- * Bytescale Upload Service
- * Supports BasicUpload, FormDataUpload, and UploadFromUrl APIs
+ * Bytescale Unified Service
+ * Combines upload functionality and URL generation for Bytescale
  */
+
+// ============================================
+// Types and Interfaces
+// ============================================
+
+interface BytescaleConfig {
+	accountId: string;
+	apiKey: string;
+}
 
 interface BytescaleUploadParams {
 	accountId: string;
@@ -45,6 +54,45 @@ interface BytescaleFormDataResponse {
 		formDataFieldName: string;
 	}>;
 }
+
+// ============================================
+// Configuration
+// ============================================
+
+/**
+ * Get Bytescale configuration from environment variables
+ * For client-side code, use NEXT_PUBLIC_ prefixed variables
+ * For server-side code, use regular environment variables
+ */
+export function getBytescaleConfig(): BytescaleConfig {
+	// Check if we're on the server or client
+	const isServer = typeof window === "undefined";
+
+	let accountId: string | undefined;
+	let apiKey: string | undefined;
+
+	if (isServer) {
+		// Server-side: use regular env vars
+		accountId = process.env.BYTESCALE_ACCOUNT_ID;
+		apiKey = process.env.BYTESCALE_API_KEY;
+	} else {
+		// Client-side: use NEXT_PUBLIC_ prefixed vars
+		accountId = process.env.NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID;
+		apiKey = process.env.NEXT_PUBLIC_BYTESCALE_API_KEY;
+	}
+
+	if (!accountId || !apiKey) {
+		throw new Error(
+			`Bytescale configuration missing. Please set ${isServer ? "BYTESCALE_ACCOUNT_ID and BYTESCALE_API_KEY" : "NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID and NEXT_PUBLIC_BYTESCALE_API_KEY"} environment variables.`,
+		);
+	}
+
+	return { accountId, apiKey };
+}
+
+// ============================================
+// Upload Functions
+// ============================================
 
 /**
  * Upload a file to Bytescale using the BasicUpload API
@@ -166,37 +214,6 @@ export async function uploadToBytescale({
 		console.error("Bytescale upload error:", error);
 		throw error;
 	}
-}
-
-/**
- * Get Bytescale configuration from environment variables
- * For client-side code, use NEXT_PUBLIC_ prefixed variables
- * For server-side code, use regular environment variables
- */
-export function getBytescaleConfig() {
-	// Check if we're on the server or client
-	const isServer = typeof window === "undefined";
-
-	let accountId: string | undefined;
-	let apiKey: string | undefined;
-
-	if (isServer) {
-		// Server-side: use regular env vars
-		accountId = process.env.BYTESCALE_ACCOUNT_ID;
-		apiKey = process.env.BYTESCALE_API_KEY;
-	} else {
-		// Client-side: use NEXT_PUBLIC_ prefixed vars
-		accountId = process.env.NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID;
-		apiKey = process.env.NEXT_PUBLIC_BYTESCALE_API_KEY;
-	}
-
-	if (!accountId || !apiKey) {
-		throw new Error(
-			`Bytescale configuration missing. Please set ${isServer ? "BYTESCALE_ACCOUNT_ID and BYTESCALE_API_KEY" : "NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID and NEXT_PUBLIC_BYTESCALE_API_KEY"} environment variables.`,
-		);
-	}
-
-	return { accountId, apiKey };
 }
 
 /**
@@ -358,10 +375,85 @@ export async function uploadFromUrl({
 	}
 }
 
+// ============================================
+// URL Generation Functions
+// ============================================
+
+/**
+ * Generate batch upload URLs for multiple files
+ */
+export function generateBatchUploadUrls(
+	fileNames: string[],
+	folder?: string,
+): Array<{
+	fileName: string;
+	filePath: string;
+	uploadUrl: string;
+	viewUrl: string;
+}> {
+	const config = getBytescaleConfig();
+
+	const results = fileNames.map((fileName) => {
+		const filePath = folder ? `${folder}/${fileName}` : fileName;
+
+		// Simple URL construction without encoding the path separators
+		const uploadUrl = `https://upcdn.io/${config.accountId}/raw/${filePath}`;
+		const viewUrl = `https://upcdn.io/${config.accountId}/raw/${filePath}`;
+
+		return {
+			fileName,
+			filePath,
+			uploadUrl,
+			viewUrl,
+		};
+	});
+
+	return results;
+}
+
 /**
  * Generate folder path for uploads
  */
 export function generateUploadFolder(userId: string): string {
 	const timestamp = Date.now();
 	return `/uploads/${userId}/${timestamp}`;
+}
+
+// ============================================
+// Utility Functions
+// ============================================
+
+/**
+ * Extract content type from file name
+ */
+export function getContentTypeFromFileName(fileName: string): string {
+	const extension = fileName.split(".").pop()?.toLowerCase();
+
+	const mimeTypes: Record<string, string> = {
+		// Video
+		mp4: "video/mp4",
+		webm: "video/webm",
+		ogg: "video/ogg",
+		mov: "video/quicktime",
+		avi: "video/x-msvideo",
+
+		// Audio
+		mp3: "audio/mpeg",
+		wav: "audio/wav",
+		m4a: "audio/mp4",
+		aac: "audio/aac",
+
+		// Image
+		jpg: "image/jpeg",
+		jpeg: "image/jpeg",
+		png: "image/png",
+		gif: "image/gif",
+		webp: "image/webp",
+		svg: "image/svg+xml",
+
+		// Default
+		default: "application/octet-stream",
+	};
+
+	return mimeTypes[extension || ""] || mimeTypes.default;
 }

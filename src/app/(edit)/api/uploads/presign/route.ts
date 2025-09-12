@@ -1,37 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateUploadFolder } from "@/utils/bytescale-upload";
-
-function getContentTypeFromFileName(fileName: string): string {
-	const extension = fileName.split(".").pop()?.toLowerCase();
-
-	const mimeTypes: Record<string, string> = {
-		// Video
-		mp4: "video/mp4",
-		webm: "video/webm",
-		ogg: "video/ogg",
-		mov: "video/quicktime",
-		avi: "video/x-msvideo",
-
-		// Audio
-		mp3: "audio/mpeg",
-		wav: "audio/wav",
-		m4a: "audio/mp4",
-		aac: "audio/aac",
-
-		// Image
-		jpg: "image/jpeg",
-		jpeg: "image/jpeg",
-		png: "image/png",
-		gif: "image/gif",
-		webp: "image/webp",
-		svg: "image/svg+xml",
-
-		// Default
-		default: "application/octet-stream",
-	};
-
-	return mimeTypes[extension || ""] || mimeTypes.default;
-}
+import { generateUploadFolder, getContentTypeFromFileName } from "@/utils/bytescale";
 
 interface PresignRequest {
 	userId: string;

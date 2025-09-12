@@ -19,10 +19,10 @@ export function useStateVerification(stateManager: StateManager) {
 		// Subscribe to all state changes
 		const stateSubscription = stateManager.subscribeToState((newState) => {
 			operationCountRef.current++;
-			
+
 			// Create new snapshot
 			const newSnapshot = createStateSnapshot(newState);
-			
+
 			// Update last snapshot
 			lastSnapshotRef.current = newSnapshot;
 		});
@@ -32,11 +32,11 @@ export function useStateVerification(stateManager: StateManager) {
 			.pipe(filter(({ key }) => key === "DESIGN_LOAD"))
 			.subscribe((event) => {
 				const payload = event.value?.payload;
-				
+
 				// Silently validate payload structure
 				if (payload) {
 					const issues = [];
-					
+
 					// Check for correct property names
 					if (payload.trackItems && !payload.trackItemsMap) {
 						issues.push("Using 'trackItems' instead of 'trackItemsMap'");
@@ -44,7 +44,7 @@ export function useStateVerification(stateManager: StateManager) {
 					if (payload.transitions && !payload.transitionsMap) {
 						issues.push("Using 'transitions' instead of 'transitionsMap'");
 					}
-					
+
 					// Check for required arrays
 					if (!payload.trackItemIds) {
 						issues.push("Missing 'trackItemIds' array");
@@ -52,7 +52,7 @@ export function useStateVerification(stateManager: StateManager) {
 					if (!payload.transitionIds) {
 						issues.push("Missing 'transitionIds' array");
 					}
-					
+
 					// Check for required properties
 					if (!payload.fps) {
 						issues.push("Missing 'fps' property");
@@ -60,7 +60,7 @@ export function useStateVerification(stateManager: StateManager) {
 					if (!payload.size) {
 						issues.push("Missing 'size' property");
 					}
-					
+
 					// Only log errors if there are critical issues
 					if (issues.length > 0) {
 						console.error("DESIGN_LOAD payload issues:", issues);
@@ -83,17 +83,17 @@ export function useStateVerification(stateManager: StateManager) {
 export function verifyCurrentState(stateManager: StateManager): string[] {
 	const state = stateManager.getState();
 	const issues: string[] = [];
-	
+
 	// Verify trackItemIds match trackItemsMap
 	if (state.trackItemIds && state.trackItemsMap) {
 		const mapKeys = Object.keys(state.trackItemsMap);
 		const missingInMap = state.trackItemIds.filter(
-			(id: string) => !mapKeys.includes(id)
+			(id: string) => !mapKeys.includes(id),
 		);
 		const missingInIds = mapKeys.filter(
-			(id: string) => !state.trackItemIds.includes(id)
+			(id: string) => !state.trackItemIds.includes(id),
 		);
-		
+
 		if (missingInMap.length > 0) {
 			issues.push(`IDs not in map: ${missingInMap.join(", ")}`);
 		}
@@ -101,17 +101,17 @@ export function verifyCurrentState(stateManager: StateManager): string[] {
 			issues.push(`Map keys not in IDs: ${missingInIds.join(", ")}`);
 		}
 	}
-	
+
 	// Verify transitionIds match transitionsMap
 	if (state.transitionIds && state.transitionsMap) {
 		const mapKeys = Object.keys(state.transitionsMap);
 		const missingInMap = state.transitionIds.filter(
-			(id: string) => !mapKeys.includes(id)
+			(id: string) => !mapKeys.includes(id),
 		);
 		const missingInIds = mapKeys.filter(
-			(id: string) => !state.transitionIds.includes(id)
+			(id: string) => !state.transitionIds.includes(id),
 		);
-		
+
 		if (missingInMap.length > 0) {
 			issues.push(`Transition IDs not in map: ${missingInMap.join(", ")}`);
 		}
@@ -119,7 +119,7 @@ export function verifyCurrentState(stateManager: StateManager): string[] {
 			issues.push(`Transition map keys not in IDs: ${missingInIds.join(", ")}`);
 		}
 	}
-	
+
 	// Check track items in tracks
 	if (state.tracks && state.trackItemsMap) {
 		for (const track of state.tracks) {
@@ -132,6 +132,6 @@ export function verifyCurrentState(stateManager: StateManager): string[] {
 			}
 		}
 	}
-	
+
 	return issues;
 }
