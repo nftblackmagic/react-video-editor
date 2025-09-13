@@ -8,18 +8,18 @@ import "server-only"; // This will throw an error if imported on the client
 import { TranscriptionService } from "./interface";
 import { ElevenLabsTranscriptionService } from "./providers/elevenlabs";
 import {
-  TranscriptionProvider,
-  TranscriptionError,
-  TranscriptionErrorType,
-  TranscriptionOptions,
-  TranscriptionResponse,
+	TranscriptionProvider,
+	TranscriptionError,
+	TranscriptionErrorType,
+	TranscriptionOptions,
+	TranscriptionResponse,
 } from "./types";
 import {
-  getDefaultProvider,
-  getProviderConfig,
-  isProviderConfigured,
-  getConfiguredProviders,
-  transcriptionConfig,
+	getDefaultProvider,
+	getProviderConfig,
+	isProviderConfigured,
+	getConfiguredProviders,
+	transcriptionConfig,
 } from "./config";
 
 // Cache for service instances
@@ -31,59 +31,59 @@ const serviceCache = new Map<TranscriptionProvider, TranscriptionService>();
  * @returns TranscriptionService instance
  */
 export function createTranscriptionService(
-  provider?: TranscriptionProvider
+	provider?: TranscriptionProvider,
 ): TranscriptionService {
-  const selectedProvider = provider || getDefaultProvider();
+	const selectedProvider = provider || getDefaultProvider();
 
-  // Check cache first
-  if (serviceCache.has(selectedProvider)) {
-    return serviceCache.get(selectedProvider) as TranscriptionService;
-  }
+	// Check cache first
+	if (serviceCache.has(selectedProvider)) {
+		return serviceCache.get(selectedProvider) as TranscriptionService;
+	}
 
-  // Get provider configuration
-  const config = getProviderConfig(selectedProvider);
+	// Get provider configuration
+	const config = getProviderConfig(selectedProvider);
 
-  let service: TranscriptionService;
+	let service: TranscriptionService;
 
-  switch (selectedProvider) {
-    case TranscriptionProvider.ELEVENLABS:
-      if (!config.apiKey) {
-        throw new TranscriptionError(
-          TranscriptionErrorType.AUTHENTICATION_ERROR,
-          "ElevenLabs API key not configured"
-        );
-      }
-      service = new ElevenLabsTranscriptionService({
-        apiKey: config.apiKey,
-        modelId: config.defaultOptions?.modelId,
-      });
-      break;
+	switch (selectedProvider) {
+		case TranscriptionProvider.ELEVENLABS:
+			if (!config.apiKey) {
+				throw new TranscriptionError(
+					TranscriptionErrorType.AUTHENTICATION_ERROR,
+					"ElevenLabs API key not configured",
+				);
+			}
+			service = new ElevenLabsTranscriptionService({
+				apiKey: config.apiKey,
+				modelId: config.defaultOptions?.modelId,
+			});
+			break;
 
-    case TranscriptionProvider.OPENAI:
-      // Future implementation
-      throw new TranscriptionError(
-        TranscriptionErrorType.PROVIDER_ERROR,
-        "OpenAI provider not yet implemented"
-      );
+		case TranscriptionProvider.OPENAI:
+			// Future implementation
+			throw new TranscriptionError(
+				TranscriptionErrorType.PROVIDER_ERROR,
+				"OpenAI provider not yet implemented",
+			);
 
-    case TranscriptionProvider.GOOGLE:
-      // Future implementation
-      throw new TranscriptionError(
-        TranscriptionErrorType.PROVIDER_ERROR,
-        "Google Cloud provider not yet implemented"
-      );
+		case TranscriptionProvider.GOOGLE:
+			// Future implementation
+			throw new TranscriptionError(
+				TranscriptionErrorType.PROVIDER_ERROR,
+				"Google Cloud provider not yet implemented",
+			);
 
-    default:
-      throw new TranscriptionError(
-        TranscriptionErrorType.PROVIDER_ERROR,
-        `Unknown provider: ${selectedProvider}`
-      );
-  }
+		default:
+			throw new TranscriptionError(
+				TranscriptionErrorType.PROVIDER_ERROR,
+				`Unknown provider: ${selectedProvider}`,
+			);
+	}
 
-  // Cache the service instance
-  serviceCache.set(selectedProvider, service);
+	// Cache the service instance
+	serviceCache.set(selectedProvider, service);
 
-  return service;
+	return service;
 }
 
 /**
@@ -91,7 +91,7 @@ export function createTranscriptionService(
  * @returns TranscriptionService instance using the default provider
  */
 export function getTranscriptionService(): TranscriptionService {
-  return createTranscriptionService();
+	return createTranscriptionService();
 }
 
 /**
@@ -99,11 +99,11 @@ export function getTranscriptionService(): TranscriptionService {
  * Convenience function for simple transcription
  */
 export async function transcribe(
-  input: Blob | string,
-  options: TranscriptionOptions
+	input: Blob | string,
+	options: TranscriptionOptions,
 ): Promise<TranscriptionResponse> {
-  const service = getTranscriptionService();
-  return service.transcribe(input, options);
+	const service = getTranscriptionService();
+	return service.transcribe(input, options);
 }
 
 /**
@@ -111,17 +111,17 @@ export async function transcribe(
  * Useful for testing or when configuration changes
  */
 export function clearServiceCache(): void {
-  serviceCache.clear();
+	serviceCache.clear();
 }
 
 // Re-export types and utilities
 export {
-  TranscriptionProvider,
-  TranscriptionError,
-  TranscriptionErrorType,
-  getConfiguredProviders,
-  isProviderConfigured,
-  transcriptionConfig,
+	TranscriptionProvider,
+	TranscriptionError,
+	TranscriptionErrorType,
+	getConfiguredProviders,
+	isProviderConfigured,
+	transcriptionConfig,
 };
 
 export type { TranscriptionService } from "./interface";

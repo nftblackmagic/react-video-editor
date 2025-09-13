@@ -36,7 +36,7 @@ export class ElevenLabsTranscriptionService extends BaseTranscriptionService {
 		if (!config.apiKey) {
 			throw new TranscriptionError(
 				TranscriptionErrorType.AUTHENTICATION_ERROR,
-				"ElevenLabs API key is required"
+				"ElevenLabs API key is required",
 			);
 		}
 
@@ -70,7 +70,7 @@ export class ElevenLabsTranscriptionService extends BaseTranscriptionService {
 
 	async transcribe(
 		input: Blob | string,
-		options: TranscriptionOptions
+		options: TranscriptionOptions,
 	): Promise<TranscriptionResponse> {
 		try {
 			// Validate language if provided
@@ -102,7 +102,7 @@ export class ElevenLabsTranscriptionService extends BaseTranscriptionService {
 			// Process and convert response
 			if ("words" in transcription && transcription.words) {
 				const segments = this.convertToSegments(transcription.words as any[]);
-				
+
 				return {
 					segments,
 					detectedLanguage: options.language,
@@ -115,7 +115,7 @@ export class ElevenLabsTranscriptionService extends BaseTranscriptionService {
 
 			throw new TranscriptionError(
 				TranscriptionErrorType.PROVIDER_ERROR,
-				"Invalid response format from ElevenLabs"
+				"Invalid response format from ElevenLabs",
 			);
 		} catch (error) {
 			// Handle and wrap errors
@@ -129,7 +129,7 @@ export class ElevenLabsTranscriptionService extends BaseTranscriptionService {
 					throw new TranscriptionError(
 						TranscriptionErrorType.AUTHENTICATION_ERROR,
 						"Invalid or expired API key",
-						error
+						error,
 					);
 				}
 
@@ -137,28 +137,31 @@ export class ElevenLabsTranscriptionService extends BaseTranscriptionService {
 					throw new TranscriptionError(
 						TranscriptionErrorType.QUOTA_EXCEEDED,
 						"API rate limit exceeded",
-						error
+						error,
 					);
 				}
 
-				if (error.message.includes("network") || error.message.includes("fetch")) {
+				if (
+					error.message.includes("network") ||
+					error.message.includes("fetch")
+				) {
 					throw new TranscriptionError(
 						TranscriptionErrorType.NETWORK_ERROR,
 						"Network error during transcription",
-						error
+						error,
 					);
 				}
 
 				throw new TranscriptionError(
 					TranscriptionErrorType.PROVIDER_ERROR,
 					`ElevenLabs transcription failed: ${error.message}`,
-					error
+					error,
 				);
 			}
 
 			throw new TranscriptionError(
 				TranscriptionErrorType.PROVIDER_ERROR,
-				"Unknown error during transcription"
+				"Unknown error during transcription",
 			);
 		}
 	}

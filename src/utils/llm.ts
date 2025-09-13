@@ -3,15 +3,15 @@ import { generateObject, ModelMessage } from "ai";
 import { z } from "zod";
 
 function _build_article_paragraph_split_messages(
-  article: string
+	article: string,
 ): ModelMessage[] {
-  return [
-    {
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text: `You are an AI assistant specialized in article division. Your task is to split a given passage into paragraphs according to specific guidelines. Here's what you need to do:
+	return [
+		{
+			role: "user",
+			content: [
+				{
+					type: "text",
+					text: `You are an AI assistant specialized in article division. Your task is to split a given passage into paragraphs according to specific guidelines. Here's what you need to do:
 
 First, carefully read the following input article:
 
@@ -46,20 +46,20 @@ Important reminders:
 - Double-check that your output adheres to the specified JSON format.
 
 Please proceed with the task and provide your response in the format specified above.`,
-        },
-      ],
-    },
-  ];
+				},
+			],
+		},
+	];
 }
 
 export async function articleParagraphSplit(article: string) {
-  const messages = _build_article_paragraph_split_messages(article);
-  const result = await generateObject({
-    model: openai("o3"),
-    messages: messages,
-    schema: z.object({
-      paragraphs: z.array(z.string()),
-    }),
-  });
-  return result.object.paragraphs;
+	const messages = _build_article_paragraph_split_messages(article);
+	const result = await generateObject({
+		model: openai("o3"),
+		messages: messages,
+		schema: z.object({
+			paragraphs: z.array(z.string()),
+		}),
+	});
+	return result.object.paragraphs;
 }

@@ -10,51 +10,51 @@
 // TODO: move this file to features/upload/utils/bytescale.ts
 
 interface BytescaleConfig {
-  accountId: string;
-  apiKey: string;
+	accountId: string;
+	apiKey: string;
 }
 
 interface BytescaleUploadParams {
-  accountId: string;
-  apiKey: string;
-  file: File | Blob;
-  fileName?: string;
-  folderPath?: string;
-  metadata?: Record<string, any>;
-  onProgress?: (percent: number) => void;
+	accountId: string;
+	apiKey: string;
+	file: File | Blob;
+	fileName?: string;
+	folderPath?: string;
+	metadata?: Record<string, any>;
+	onProgress?: (percent: number) => void;
 }
 
 interface BytescaleMultiUploadParams {
-  accountId: string;
-  apiKey: string;
-  files: File[];
-  folderPath?: string;
-  metadata?: Record<string, any>;
-  onProgress?: (percent: number) => void;
+	accountId: string;
+	apiKey: string;
+	files: File[];
+	folderPath?: string;
+	metadata?: Record<string, any>;
+	onProgress?: (percent: number) => void;
 }
 
 interface BytescaleUrlUploadParams {
-  accountId: string;
-  apiKey: string;
-  url: string;
-  fileName?: string;
-  folderPath?: string;
-  metadata?: Record<string, any>;
+	accountId: string;
+	apiKey: string;
+	url: string;
+	fileName?: string;
+	folderPath?: string;
+	metadata?: Record<string, any>;
 }
 
 interface BytescaleUploadResponse {
-  accountId: string;
-  etag: string;
-  filePath: string;
-  fileUrl: string;
+	accountId: string;
+	etag: string;
+	filePath: string;
+	fileUrl: string;
 }
 
 interface BytescaleFormDataResponse {
-  files: Array<BytescaleUploadResponse & { formDataFieldName: string }>;
-  errors: Array<{
-    error: { code: string; message: string; timestamp: string };
-    formDataFieldName: string;
-  }>;
+	files: Array<BytescaleUploadResponse & { formDataFieldName: string }>;
+	errors: Array<{
+		error: { code: string; message: string; timestamp: string };
+		formDataFieldName: string;
+	}>;
 }
 
 // ============================================
@@ -67,33 +67,33 @@ interface BytescaleFormDataResponse {
  * For server-side code, use regular environment variables
  */
 export function getBytescaleConfig(): BytescaleConfig {
-  // Check if we're on the server or client
-  const isServer = typeof window === "undefined";
+	// Check if we're on the server or client
+	const isServer = typeof window === "undefined";
 
-  let accountId: string | undefined;
-  let apiKey: string | undefined;
+	let accountId: string | undefined;
+	let apiKey: string | undefined;
 
-  if (isServer) {
-    // Server-side: use regular env vars
-    accountId = process.env.BYTESCALE_ACCOUNT_ID;
-    apiKey = process.env.BYTESCALE_API_KEY;
-  } else {
-    // Client-side: use NEXT_PUBLIC_ prefixed vars
-    accountId = process.env.NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID;
-    apiKey = process.env.NEXT_PUBLIC_BYTESCALE_API_KEY;
-  }
+	if (isServer) {
+		// Server-side: use regular env vars
+		accountId = process.env.BYTESCALE_ACCOUNT_ID;
+		apiKey = process.env.BYTESCALE_API_KEY;
+	} else {
+		// Client-side: use NEXT_PUBLIC_ prefixed vars
+		accountId = process.env.NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID;
+		apiKey = process.env.NEXT_PUBLIC_BYTESCALE_API_KEY;
+	}
 
-  if (!accountId || !apiKey) {
-    throw new Error(
-      `Bytescale configuration missing. Please set ${
-        isServer
-          ? "BYTESCALE_ACCOUNT_ID and BYTESCALE_API_KEY"
-          : "NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID and NEXT_PUBLIC_BYTESCALE_API_KEY"
-      } environment variables.`
-    );
-  }
+	if (!accountId || !apiKey) {
+		throw new Error(
+			`Bytescale configuration missing. Please set ${
+				isServer
+					? "BYTESCALE_ACCOUNT_ID and BYTESCALE_API_KEY"
+					: "NEXT_PUBLIC_BYTESCALE_ACCOUNT_ID and NEXT_PUBLIC_BYTESCALE_API_KEY"
+			} environment variables.`,
+		);
+	}
 
-  return { accountId, apiKey };
+	return { accountId, apiKey };
 }
 
 // ============================================
@@ -104,281 +104,281 @@ export function getBytescaleConfig(): BytescaleConfig {
  * Upload a file to Bytescale using the BasicUpload API
  */
 export async function uploadToBytescale({
-  accountId,
-  apiKey,
-  file,
-  fileName,
-  folderPath,
-  metadata,
-  onProgress,
+	accountId,
+	apiKey,
+	file,
+	fileName,
+	folderPath,
+	metadata,
+	onProgress,
 }: BytescaleUploadParams): Promise<BytescaleUploadResponse> {
-  const baseUrl = "https://api.bytescale.com";
-  const path = `/v2/accounts/${accountId}/uploads/binary`;
+	const baseUrl = "https://api.bytescale.com";
+	const path = `/v2/accounts/${accountId}/uploads/binary`;
 
-  // Build query parameters
-  const queryParams: Record<string, string> = {};
+	// Build query parameters
+	const queryParams: Record<string, string> = {};
 
-  if (fileName) {
-    queryParams.fileName = fileName;
-  } else if (file instanceof File) {
-    queryParams.fileName = file.name;
-  }
+	if (fileName) {
+		queryParams.fileName = fileName;
+	} else if (file instanceof File) {
+		queryParams.fileName = file.name;
+	}
 
-  if (folderPath) {
-    queryParams.folderPath = folderPath;
-  }
+	if (folderPath) {
+		queryParams.folderPath = folderPath;
+	}
 
-  // Original file name for tracking
-  if (file instanceof File) {
-    queryParams.originalFileName = file.name;
-  }
+	// Original file name for tracking
+	if (file instanceof File) {
+		queryParams.originalFileName = file.name;
+	}
 
-  // Convert query params to string
-  const queryString = Object.entries(queryParams)
-    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-    .join("&");
+	// Convert query params to string
+	const queryString = Object.entries(queryParams)
+		.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+		.join("&");
 
-  const url = `${baseUrl}${path}${queryString ? `?${queryString}` : ""}`;
+	const url = `${baseUrl}${path}${queryString ? `?${queryString}` : ""}`;
 
-  // Prepare headers
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${apiKey}`,
-  };
+	// Prepare headers
+	const headers: Record<string, string> = {
+		Authorization: `Bearer ${apiKey}`,
+	};
 
-  if (metadata && Object.keys(metadata).length > 0) {
-    headers["X-Upload-Metadata"] = JSON.stringify(metadata);
-  }
+	if (metadata && Object.keys(metadata).length > 0) {
+		headers["X-Upload-Metadata"] = JSON.stringify(metadata);
+	}
 
-  // Add content type if available
-  if (file.type) {
-    headers["Content-Type"] = file.type;
-  }
+	// Add content type if available
+	if (file.type) {
+		headers["Content-Type"] = file.type;
+	}
 
-  try {
-    // Create XMLHttpRequest for progress tracking
-    const response = await new Promise<BytescaleUploadResponse>(
-      (resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+	try {
+		// Create XMLHttpRequest for progress tracking
+		const response = await new Promise<BytescaleUploadResponse>(
+			(resolve, reject) => {
+				const xhr = new XMLHttpRequest();
 
-        // Track upload progress
-        if (onProgress) {
-          xhr.upload.addEventListener("progress", (event) => {
-            if (event.lengthComputable) {
-              const percentComplete = Math.round(
-                (event.loaded / event.total) * 100
-              );
-              onProgress(percentComplete);
-            }
-          });
-        }
+				// Track upload progress
+				if (onProgress) {
+					xhr.upload.addEventListener("progress", (event) => {
+						if (event.lengthComputable) {
+							const percentComplete = Math.round(
+								(event.loaded / event.total) * 100,
+							);
+							onProgress(percentComplete);
+						}
+					});
+				}
 
-        // Handle completion
-        xhr.addEventListener("load", () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const result = JSON.parse(xhr.responseText);
-              resolve(result);
-            } catch (error) {
-              reject(new Error("Failed to parse response"));
-            }
-          } else {
-            try {
-              const error = JSON.parse(xhr.responseText);
-              reject(
-                new Error(`Bytescale API Error: ${JSON.stringify(error)}`)
-              );
-            } catch {
-              reject(new Error(`Upload failed with status ${xhr.status}`));
-            }
-          }
-        });
+				// Handle completion
+				xhr.addEventListener("load", () => {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						try {
+							const result = JSON.parse(xhr.responseText);
+							resolve(result);
+						} catch (error) {
+							reject(new Error("Failed to parse response"));
+						}
+					} else {
+						try {
+							const error = JSON.parse(xhr.responseText);
+							reject(
+								new Error(`Bytescale API Error: ${JSON.stringify(error)}`),
+							);
+						} catch {
+							reject(new Error(`Upload failed with status ${xhr.status}`));
+						}
+					}
+				});
 
-        // Handle errors
-        xhr.addEventListener("error", () => {
-          reject(new Error("Network error during upload"));
-        });
+				// Handle errors
+				xhr.addEventListener("error", () => {
+					reject(new Error("Network error during upload"));
+				});
 
-        xhr.addEventListener("abort", () => {
-          reject(new Error("Upload aborted"));
-        });
+				xhr.addEventListener("abort", () => {
+					reject(new Error("Upload aborted"));
+				});
 
-        // Open and send request
-        xhr.open("POST", url);
+				// Open and send request
+				xhr.open("POST", url);
 
-        // Set headers
-        for (const [key, value] of Object.entries(headers)) {
-          xhr.setRequestHeader(key, value);
-        }
+				// Set headers
+				for (const [key, value] of Object.entries(headers)) {
+					xhr.setRequestHeader(key, value);
+				}
 
-        // Send the file
-        xhr.send(file);
-      }
-    );
+				// Send the file
+				xhr.send(file);
+			},
+		);
 
-    return response;
-  } catch (error) {
-    console.error("Bytescale upload error:", error);
-    throw error;
-  }
+		return response;
+	} catch (error) {
+		console.error("Bytescale upload error:", error);
+		throw error;
+	}
 }
 
 /**
  * Upload multiple files using FormDataUpload API
  */
 export async function uploadMultipleToBytescale({
-  accountId,
-  apiKey,
-  files,
-  folderPath,
-  metadata,
-  onProgress,
+	accountId,
+	apiKey,
+	files,
+	folderPath,
+	metadata,
+	onProgress,
 }: BytescaleMultiUploadParams): Promise<BytescaleFormDataResponse> {
-  const baseUrl = "https://api.bytescale.com";
-  const path = `/v2/accounts/${accountId}/uploads/form_data`;
+	const baseUrl = "https://api.bytescale.com";
+	const path = `/v2/accounts/${accountId}/uploads/form_data`;
 
-  // Build query parameters
-  const queryParams: Record<string, string> = {};
-  if (folderPath) {
-    queryParams.folderPath = folderPath;
-  }
+	// Build query parameters
+	const queryParams: Record<string, string> = {};
+	if (folderPath) {
+		queryParams.folderPath = folderPath;
+	}
 
-  const queryString = Object.entries(queryParams)
-    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-    .join("&");
+	const queryString = Object.entries(queryParams)
+		.map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+		.join("&");
 
-  const url = `${baseUrl}${path}${queryString ? `?${queryString}` : ""}`;
+	const url = `${baseUrl}${path}${queryString ? `?${queryString}` : ""}`;
 
-  // Create FormData
-  const formData = new FormData();
-  for (const [index, file] of files.entries()) {
-    formData.append(`file_${index}`, file, file.name);
-  }
+	// Create FormData
+	const formData = new FormData();
+	for (const [index, file] of files.entries()) {
+		formData.append(`file_${index}`, file, file.name);
+	}
 
-  // Prepare headers
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${apiKey}`,
-  };
+	// Prepare headers
+	const headers: Record<string, string> = {
+		Authorization: `Bearer ${apiKey}`,
+	};
 
-  if (metadata && Object.keys(metadata).length > 0) {
-    headers["X-Upload-Metadata"] = JSON.stringify(metadata);
-  }
+	if (metadata && Object.keys(metadata).length > 0) {
+		headers["X-Upload-Metadata"] = JSON.stringify(metadata);
+	}
 
-  try {
-    const response = await new Promise<BytescaleFormDataResponse>(
-      (resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+	try {
+		const response = await new Promise<BytescaleFormDataResponse>(
+			(resolve, reject) => {
+				const xhr = new XMLHttpRequest();
 
-        // Track upload progress
-        if (onProgress) {
-          xhr.upload.addEventListener("progress", (event) => {
-            if (event.lengthComputable) {
-              const percentComplete = Math.round(
-                (event.loaded / event.total) * 100
-              );
-              onProgress(percentComplete);
-            }
-          });
-        }
+				// Track upload progress
+				if (onProgress) {
+					xhr.upload.addEventListener("progress", (event) => {
+						if (event.lengthComputable) {
+							const percentComplete = Math.round(
+								(event.loaded / event.total) * 100,
+							);
+							onProgress(percentComplete);
+						}
+					});
+				}
 
-        // Handle completion
-        xhr.addEventListener("load", () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const result = JSON.parse(xhr.responseText);
-              resolve(result);
-            } catch (error) {
-              reject(new Error("Failed to parse response"));
-            }
-          } else {
-            try {
-              const error = JSON.parse(xhr.responseText);
-              reject(
-                new Error(`Bytescale API Error: ${JSON.stringify(error)}`)
-              );
-            } catch {
-              reject(new Error(`Upload failed with status ${xhr.status}`));
-            }
-          }
-        });
+				// Handle completion
+				xhr.addEventListener("load", () => {
+					if (xhr.status >= 200 && xhr.status < 300) {
+						try {
+							const result = JSON.parse(xhr.responseText);
+							resolve(result);
+						} catch (error) {
+							reject(new Error("Failed to parse response"));
+						}
+					} else {
+						try {
+							const error = JSON.parse(xhr.responseText);
+							reject(
+								new Error(`Bytescale API Error: ${JSON.stringify(error)}`),
+							);
+						} catch {
+							reject(new Error(`Upload failed with status ${xhr.status}`));
+						}
+					}
+				});
 
-        // Handle errors
-        xhr.addEventListener("error", () => {
-          reject(new Error("Network error during upload"));
-        });
+				// Handle errors
+				xhr.addEventListener("error", () => {
+					reject(new Error("Network error during upload"));
+				});
 
-        xhr.addEventListener("abort", () => {
-          reject(new Error("Upload aborted"));
-        });
+				xhr.addEventListener("abort", () => {
+					reject(new Error("Upload aborted"));
+				});
 
-        // Open and send request
-        xhr.open("POST", url);
+				// Open and send request
+				xhr.open("POST", url);
 
-        // Set headers
-        for (const [key, value] of Object.entries(headers)) {
-          xhr.setRequestHeader(key, value);
-        }
+				// Set headers
+				for (const [key, value] of Object.entries(headers)) {
+					xhr.setRequestHeader(key, value);
+				}
 
-        // Send the form data
-        xhr.send(formData);
-      }
-    );
+				// Send the form data
+				xhr.send(formData);
+			},
+		);
 
-    return response;
-  } catch (error) {
-    console.error("Bytescale multi-upload error:", error);
-    throw error;
-  }
+		return response;
+	} catch (error) {
+		console.error("Bytescale multi-upload error:", error);
+		throw error;
+	}
 }
 
 /**
  * Upload from URL using Bytescale's UploadFromUrl API
  */
 export async function uploadFromUrl({
-  accountId,
-  apiKey,
-  url,
-  fileName,
-  folderPath,
-  metadata,
+	accountId,
+	apiKey,
+	url,
+	fileName,
+	folderPath,
+	metadata,
 }: BytescaleUrlUploadParams): Promise<BytescaleUploadResponse> {
-  const baseUrl = "https://api.bytescale.com";
-  const path = `/v2/accounts/${accountId}/uploads/url`;
+	const baseUrl = "https://api.bytescale.com";
+	const path = `/v2/accounts/${accountId}/uploads/url`;
 
-  const requestBody: any = { url };
+	const requestBody: any = { url };
 
-  if (fileName) {
-    requestBody.fileName = fileName;
-  }
+	if (fileName) {
+		requestBody.fileName = fileName;
+	}
 
-  if (folderPath) {
-    requestBody.folderPath = folderPath;
-  }
+	if (folderPath) {
+		requestBody.folderPath = folderPath;
+	}
 
-  if (metadata && Object.keys(metadata).length > 0) {
-    requestBody.metadata = metadata;
-  }
+	if (metadata && Object.keys(metadata).length > 0) {
+		requestBody.metadata = metadata;
+	}
 
-  try {
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: "POST",
-      body: JSON.stringify(requestBody),
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-    });
+	try {
+		const response = await fetch(`${baseUrl}${path}`, {
+			method: "POST",
+			body: JSON.stringify(requestBody),
+			headers: {
+				Authorization: `Bearer ${apiKey}`,
+				"Content-Type": "application/json",
+			},
+		});
 
-    const result = await response.json();
+		const result = await response.json();
 
-    if (!response.ok) {
-      throw new Error(`Bytescale API Error: ${JSON.stringify(result)}`);
-    }
+		if (!response.ok) {
+			throw new Error(`Bytescale API Error: ${JSON.stringify(result)}`);
+		}
 
-    return result;
-  } catch (error) {
-    console.error("Bytescale URL upload error:", error);
-    throw error;
-  }
+		return result;
+	} catch (error) {
+		console.error("Bytescale URL upload error:", error);
+		throw error;
+	}
 }
 
 // ============================================
@@ -389,40 +389,40 @@ export async function uploadFromUrl({
  * Generate batch upload URLs for multiple files
  */
 export function generateBatchUploadUrls(
-  fileNames: string[],
-  folder?: string
+	fileNames: string[],
+	folder?: string,
 ): Array<{
-  fileName: string;
-  filePath: string;
-  uploadUrl: string;
-  viewUrl: string;
+	fileName: string;
+	filePath: string;
+	uploadUrl: string;
+	viewUrl: string;
 }> {
-  const config = getBytescaleConfig();
+	const config = getBytescaleConfig();
 
-  const results = fileNames.map((fileName) => {
-    const filePath = folder ? `${folder}/${fileName}` : fileName;
+	const results = fileNames.map((fileName) => {
+		const filePath = folder ? `${folder}/${fileName}` : fileName;
 
-    // Simple URL construction without encoding the path separators
-    const uploadUrl = `https://upcdn.io/${config.accountId}/raw/${filePath}`;
-    const viewUrl = `https://upcdn.io/${config.accountId}/raw/${filePath}`;
+		// Simple URL construction without encoding the path separators
+		const uploadUrl = `https://upcdn.io/${config.accountId}/raw/${filePath}`;
+		const viewUrl = `https://upcdn.io/${config.accountId}/raw/${filePath}`;
 
-    return {
-      fileName,
-      filePath,
-      uploadUrl,
-      viewUrl,
-    };
-  });
+		return {
+			fileName,
+			filePath,
+			uploadUrl,
+			viewUrl,
+		};
+	});
 
-  return results;
+	return results;
 }
 
 /**
  * Generate folder path for uploads
  */
 export function generateUploadFolder(userId: string): string {
-  const timestamp = Date.now();
-  return `/uploads/${userId}/${timestamp}`;
+	const timestamp = Date.now();
+	return `/uploads/${userId}/${timestamp}`;
 }
 
 // ============================================
@@ -433,33 +433,33 @@ export function generateUploadFolder(userId: string): string {
  * Extract content type from file name
  */
 export function getContentTypeFromFileName(fileName: string): string {
-  const extension = fileName.split(".").pop()?.toLowerCase();
+	const extension = fileName.split(".").pop()?.toLowerCase();
 
-  const mimeTypes: Record<string, string> = {
-    // Video
-    mp4: "video/mp4",
-    webm: "video/webm",
-    ogg: "video/ogg",
-    mov: "video/quicktime",
-    avi: "video/x-msvideo",
+	const mimeTypes: Record<string, string> = {
+		// Video
+		mp4: "video/mp4",
+		webm: "video/webm",
+		ogg: "video/ogg",
+		mov: "video/quicktime",
+		avi: "video/x-msvideo",
 
-    // Audio
-    mp3: "audio/mpeg",
-    wav: "audio/wav",
-    m4a: "audio/mp4",
-    aac: "audio/aac",
+		// Audio
+		mp3: "audio/mpeg",
+		wav: "audio/wav",
+		m4a: "audio/mp4",
+		aac: "audio/aac",
 
-    // Image
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    png: "image/png",
-    gif: "image/gif",
-    webp: "image/webp",
-    svg: "image/svg+xml",
+		// Image
+		jpg: "image/jpeg",
+		jpeg: "image/jpeg",
+		png: "image/png",
+		gif: "image/gif",
+		webp: "image/webp",
+		svg: "image/svg+xml",
 
-    // Default
-    default: "application/octet-stream",
-  };
+		// Default
+		default: "application/octet-stream",
+	};
 
-  return mimeTypes[extension || ""] || mimeTypes.default;
+	return mimeTypes[extension || ""] || mimeTypes.default;
 }
