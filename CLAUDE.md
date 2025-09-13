@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ### Development
+
 ```bash
 pnpm dev          # Start development server at localhost:3000
 pnpm build        # Create production build
@@ -14,6 +15,7 @@ pnpm format       # Format code with Biome
 ```
 
 ### Database Management
+
 ```bash
 pnpm db:generate  # Generate Drizzle schema types
 pnpm db:migrate   # Run database migrations
@@ -23,6 +25,7 @@ pnpm db:check     # Validate schema
 ```
 
 ### Cleanup Commands
+
 ```bash
 pnpm cleanup:cache  # Clean media cache (runs tsx scripts/cleanup-media-cache.ts)
 pnpm cleanup:all    # Full reset - removes .next, node_modules, reinstalls
@@ -89,8 +92,8 @@ PostgreSQL database using Drizzle ORM with tables:
 
 - **Pexels API** (`/app/api/pexels/`): Stock media integration
 - **Combo.sh** (`/app/api/render/`): External rendering service
-- **ElevenLabs** (`/app/actions/transcribe.ts`): Voice transcription
-- **Bytescale** (`/utils/bytescale-upload.ts`, `/utils/bytescale-url.ts`): File upload and CDN service
+- **Transcription Services** (`/lib/transcription/`): Abstracted transcription with provider support (ElevenLabs, OpenAI, etc.)
+- **Bytescale** (`/utils/bytescale.ts`): Unified file upload and CDN service
 - File uploads use presigned URLs through `/app/api/uploads/`
 
 ### Important Patterns
@@ -98,7 +101,7 @@ PostgreSQL database using Drizzle ORM with tables:
 1. **Component Organization**: UI primitives in `/components/ui/` use shadcn/ui patterns
 2. **Responsive Design**: Desktop and mobile layouts handled separately in the main editor
 3. **Timeline Integration**: Uses `@designcombo/timeline` and `@designcombo/events` packages
-4. **DesignCombo Event System**: 
+4. **DesignCombo Event System**:
    - All timeline manipulations use the event-driven architecture from `@designcombo/state`
    - Events are dispatched using `dispatch` from `@designcombo/events`
    - Common events: ADD_TEXT, ADD_IMAGE, ADD_VIDEO, ADD_AUDIO, EDIT_OBJECT, LAYER_SELECT, etc.
@@ -107,11 +110,12 @@ PostgreSQL database using Drizzle ORM with tables:
 6. **Path Aliases**: Use `@/` for src directory imports
 7. **Segment Management**: `segment-splitter.ts` utility for advanced transcript segment operations (split, merge, adjust timing)
 8. **File Upload**: Bytescale integration for efficient file uploads with progress tracking
+9. **Service Abstraction**: Third-party services are abstracted in `/lib/` for easy provider switching and testing
 
 ### Development Guidelines
 
 1. **State Updates**: Always use the appropriate Zustand store for state management
-2. **DesignCombo SDK Usage**: 
+2. **DesignCombo SDK Usage**:
    - **IMPORTANT**: Always refer to `/docs/designcombo-state-reference.md` when working with DesignCombo SDK events
    - Use `dispatch` from `@designcombo/events` for all timeline operations
    - Follow event patterns from the reference documentation for adding media, editing objects, and managing layers
@@ -138,8 +142,10 @@ PEXELS_API_KEY=""
 # Video rendering service
 COMBO_SH_JWT=""
 
-# Voice transcription
-NEXT_PUBLIC_ELEVENLABS_API_KEY=""
+# Transcription services
+ELEVENLABS_API_KEY=""                    # Server-side ElevenLabs API key
+NEXT_PUBLIC_ELEVENLABS_API_KEY=""        # Client-side ElevenLabs API key (if needed)
+TRANSCRIPTION_PROVIDER="elevenlabs"      # Optional: specify provider (elevenlabs, openai, google, local)
 
 # Bytescale file upload service
 BYTESCALE_ACCOUNT_ID=""
@@ -155,6 +161,66 @@ NEXT_PUBLIC_BYTESCALE_API_KEY=""
 - No test framework is currently configured
 - The user will run `pnpm dev` manually - do not run `pnpm dev` yourself
 - You can use playwright MCP to open a browser to localhost:3000 for testing
+
+### Service Architecture
+
+#### Transcription Service (`/lib/transcription/`)
+
+The transcription service provides an abstracted interface for multiple transcription providers with **client-server separation** to handle Node.js dependencies.
+
+**File Structure:**
+
+```
+lib/transcription/
+├── types.ts             # Single source of truth for types, formats, and constants
+├── client-utils.ts      # Re-exports client-safe items from types.ts
+├── server.ts            # Server-only service implementation (contains Node.js code)
+├── index.ts             # Client-safe exports for general use
+├── interface.ts         # Abstract service interface
+├── config.ts            # Provider configuration (uses formats from types.ts)
+└── providers/
+    └── elevenlabs.ts    # ElevenLabs implementation (server-only)
+```
+
+**Important Design Decisions:**
+
+- `types.ts` is the single source of truth for `SUPPORTED_TRANSCRIPTION_FORMATS`
+- All other files import from `types.ts` to avoid duplication
+- `client-utils.ts` simply re-exports from `types.ts` for clarity
+- Provider configs in `config.ts` use or filter the master format list
+
+**Client-Server Architecture Flow:**
+
+```
+Client (Browser)                     Server
+     │                              │
+     ├─ 1. User uploads file        │
+     │                              │
+     ├─ 2. Check file type          │
+     │   (client-utils.ts)          │
+     │                              │
+     ├─ 3. Call Server Action ──────▶ 4. Server Action executes
+     │                              │    (actions/transcribe.ts)
+     │                              │
+     │                              ├─ 5. Get transcription service
+     │                              │    (server.ts)
+     │                              │
+     │                              ├─ 6. Call ElevenLabs API
+     │                              │    (providers/elevenlabs.ts)
+     │                              │
+     ◀────────────────────────────── 7. Return transcription
+     │                              │
+     └─ 8. Display results           │
+```
+
+**Benefits:**
+
+- Easy provider switching (ElevenLabs, OpenAI, Google, etc.)
+- Consistent error handling across providers
+- Secure API key management (server-only)
+- Small client bundle size (no unnecessary SDKs)
+- Mockable for testing
+- Clear separation of concerns
 
 ### Documentation References
 
