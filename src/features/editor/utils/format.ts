@@ -45,11 +45,10 @@ export function formatTimeToHumanReadable(
 		if (includeFrames) {
 			const frames = Math.floor(ms / msPerFrame);
 			return `${frames}f`;
-		} else {
-			// Convert milliseconds to seconds (with one decimal place)
-			const seconds = (ms / 1000).toFixed(1);
-			return `${seconds}s`;
 		}
+		// Convert milliseconds to seconds (with one decimal place)
+		const seconds = (ms / 1000).toFixed(1);
+		return `${seconds}s`;
 	}
 
 	const seconds = Math.floor(ms / 1000);

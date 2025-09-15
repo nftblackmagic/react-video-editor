@@ -1,0 +1,634 @@
+{
+  "edus": [
+    {
+      "index": 0,
+      "content": "视频呢？",
+      "tag": "NA"
+    },
+    {
+      "index": 1,
+      "content": "嗯哼。",
+      "tag": "NA"
+    },
+    {
+      "index": 2,
+      "content": "喂喂喂Hello，大家好啊，",
+      "tag": "NA"
+    },
+    {
+      "index": 3,
+      "content": "呃，",
+      "tag": "NA"
+    },
+    {
+      "index": 4,
+      "content": "这两天我们-",
+      "tag": "NA"
+    },
+    {
+      "index": 5,
+      "content": "Hello，大家好啊！",
+      "tag": "NA"
+    },
+    {
+      "index": 6,
+      "content": "这两天我们看到密集发布了几个AI新产品啊，",
+      "tag": "BG"
+    },
+    {
+      "index": 7,
+      "content": "所以从整体上来说，技术上的亮点并没有特别多。",
+      "tag": "CL"
+    },
+    {
+      "index": 8,
+      "content": "Hello大家好啊，",
+      "tag": "NA"
+    },
+    {
+      "index": 9,
+      "content": "就在这两天啊，密布的噼里噼里Hello大家好啊，",
+      "tag": "NA"
+    },
+    {
+      "index": 10,
+      "content": "就在这两天密集地发布了几款AI的新产品。",
+      "tag": "BG"
+    },
+    {
+      "index": 11,
+      "content": "整体上来说呢，我们认为技术上的亮点并没有特别的大啊，",
+      "tag": "CL"
+    },
+    {
+      "index": 12,
+      "content": "更多的呢，其实是我们想聊一下我们针对这几款产品的-",
+      "tag": "IM"
+    },
+    {
+      "index": 13,
+      "content": "Hello大家好啊！",
+      "tag": "NA"
+    },
+    {
+      "index": 14,
+      "content": "就在这两天，几大厂商密集地发布了几款AI新产品啊，",
+      "tag": "BG"
+    },
+    {
+      "index": 15,
+      "content": "整体上来说，我们看到的技术上亮点并没有特别的大啊。",
+      "tag": "CL"
+    },
+    {
+      "index": 16,
+      "content": "不过呢，我们想通过我们针对这三个产品最真实的一个体验和干，观感带大家感受一下啊，",
+      "tag": "IM"
+    },
+    {
+      "index": 17,
+      "content": "这三个产品到底如何啊？",
+      "tag": "IM"
+    },
+    {
+      "index": 18,
+      "content": "这期视频不会很长，",
+      "tag": "BG"
+    },
+    {
+      "index": 19,
+      "content": "欢迎大家收看我们今天新一期的视频。",
+      "tag": "IM"
+    },
+    {
+      "index": 20,
+      "content": "那首先我们来看一下啊，",
+      "tag": "BG"
+    },
+    {
+      "index": 21,
+      "content": "就是前两天发布的GBTOSS，",
+      "tag": "BG"
+    },
+    {
+      "index": 22,
+      "content": "它开源了两个版本，",
+      "tag": "EV"
+    },
+    {
+      "index": 23,
+      "content": "一个120B的模型，",
+      "tag": "EV"
+    },
+    {
+      "index": 24,
+      "content": "一个20B的模型啊，",
+      "tag": "EV"
+    },
+    {
+      "index": 25,
+      "content": "那这两个模型的能力基本上是和O4Milli差不多的，",
+      "tag": "EV"
+    },
+    {
+      "index": 26,
+      "content": "那这个产品呢，其实符合我们在上一期视频里面说的观点，",
+      "tag": "CL"
+    },
+    {
+      "index": 27,
+      "content": "就是现在的模型强，不在于越做越大啊，",
+      "tag": "CL"
+    },
+    {
+      "index": 28,
+      "content": "可能还在于越做越小。",
+      "tag": "CL"
+    },
+    {
+      "index": 29,
+      "content": "啊针对这个120B或者说是20B的这样的一个体量啊，",
+      "tag": "BG"
+    },
+    {
+      "index": 30,
+      "content": "它仍然是一个MOE的总体量。",
+      "tag": "EV"
+    },
+    {
+      "index": 31,
+      "content": "那120B这个模型实际激活参数只有5.1B啊，",
+      "tag": "EV"
+    },
+    {
+      "index": 32,
+      "content": "这个概念就可以理解成它是大幅地降低了推理的这个成本，",
+      "tag": "EV"
+    },
+    {
+      "index": 33,
+      "content": "大幅地提升了推理的速度啊，",
+      "tag": "EV"
+    },
+    {
+      "index": 34,
+      "content": "也是一个真正意义上能让小团队比较快速上手的模型。",
+      "tag": "CL"
+    },
+    {
+      "index": 35,
+      "content": "这是为什么强调小团队？",
+      "tag": "BG"
+    },
+    {
+      "index": 36,
+      "content": "因为这样一个体量的模型，你你算就是不仅仅是把它放到模型，放到这个GPU里面用比较小啊，",
+      "tag": "EV"
+    },
+    {
+      "index": 37,
+      "content": "那真正，那为什么这样说呢？",
+      "tag": "BG"
+    },
+    {
+      "index": 38,
+      "content": "它其实不仅仅是把这个模型能够装在GPU里面啊，",
+      "tag": "EV"
+    },
+    {
+      "index": 39,
+      "content": "它是能够比较好地让小团队去真正商用这样的小模型啊。",
+      "tag": "CL"
+    },
+    {
+      "index": 40,
+      "content": "所以，呃，这是为什么我们认为就是小团队比较适合它的原因。",
+      "tag": "CL"
+    },
+    {
+      "index": 41,
+      "content": "那我们上一期视频里面说过，",
+      "tag": "BG"
+    },
+    {
+      "index": 42,
+      "content": "就是KeyMeK2现在的宣传口径上面还是说追求万亿大模型嘛，",
+      "tag": "BG"
+    },
+    {
+      "index": 43,
+      "content": "那这样的一个宣传口径其实已经比较落后了。",
+      "tag": "CL"
+    },
+    {
+      "index": 44,
+      "content": "因为做大只能证明你工程能力达标，",
+      "tag": "EV"
+    },
+    {
+      "index": 45,
+      "content": "你有能力能够去把模型做大，",
+      "tag": "EV"
+    },
+    {
+      "index": 46,
+      "content": "但是做小现在才能证明你的工程能力强啊，",
+      "tag": "RB"
+    },
+    {
+      "index": 47,
+      "content": "你是最前沿的这样的一个一个厂商啊，",
+      "tag": "CL"
+    },
+    {
+      "index": 48,
+      "content": "这个是现阶段最核心的区别。",
+      "tag": "CL"
+    },
+    {
+      "index": 49,
+      "content": "呃，所以你可以看到最优秀的厂商现在就是把模型做得越来越小。",
+      "tag": "EV"
+    },
+    {
+      "index": 50,
+      "content": "呃，那从上面来说呢，",
+      "tag": "BG"
+    },
+    {
+      "index": 51,
+      "content": "GPTOSS就是现在最适合想用低成本在本地部署一个比较好的模型的这个中小团队，是吧？",
+      "tag": "CL"
+    },
+    {
+      "index": 52,
+      "content": "那从上面来说，GPTOSS最适合的就是低成本想在本地部署啊的这样的中小团队，",
+      "tag": "CL"
+    },
+    {
+      "index": 53,
+      "content": "然后在严肃的这个生产环境里面，呃，需要进行比较好的评估，或者说是微调。",
+      "tag": "IM"
+    },
+    {
+      "index": 54,
+      "content": "那当然对于OpenAI来说啊，",
+      "tag": "BG"
+    },
+    {
+      "index": 55,
+      "content": "它其实想要达到的一个目的，",
+      "tag": "BG"
+    },
+    {
+      "index": 56,
+      "content": "就是让开源社区继续为这个模型寻找更多的潜在的机会，",
+      "tag": "CL"
+    },
+    {
+      "index": 57,
+      "content": "或者说是呃，寻找潜在的漏洞，是吧？",
+      "tag": "CL"
+    },
+    {
+      "index": 58,
+      "content": "它还发布了一个奖励机制，",
+      "tag": "EV"
+    },
+    {
+      "index": 59,
+      "content": "五十万美金的一个竞赛。",
+      "tag": "EV"
+    },
+    {
+      "index": 60,
+      "content": "那我们再来看一下这个第二个产品啊，",
+      "tag": "BG"
+    },
+    {
+      "index": 61,
+      "content": "这个第二个产品叫做千问Image啊。",
+      "tag": "BG"
+    },
+    {
+      "index": 62,
+      "content": "那我们对于千问也在上一期视频里面聊了很多，",
+      "tag": "BG"
+    },
+    {
+      "index": 63,
+      "content": "就是阿里巴巴其实想在开源模型里面去占据排行榜第一的位置，",
+      "tag": "CL"
+    },
+    {
+      "index": 64,
+      "content": "那现在千问Image再一次验证了它的这种野心，是吧？",
+      "tag": "EV"
+    },
+    {
+      "index": 65,
+      "content": "呃，从某种程度上来说，这个千问Image呢，呃，已经是和现阶段最新的必远的图像模型啊，能够直接地竞争，做到同等的水平。",
+      "tag": "CL"
+    },
+    {
+      "index": 66,
+      "content": "从它发布的技术报告里面看，指标已经和一线的必远水平打成了平手，甚至可能更好。",
+      "tag": "EV"
+    },
+    {
+      "index": 67,
+      "content": "那在模型的具体选择上来说呢，它还是一个diffusion模型，",
+      "tag": "BG"
+    },
+    {
+      "index": 68,
+      "content": "啊采用了最新的这个千问VL的呃，这个多模态模型啊，作为这个解码器，",
+      "tag": "BG"
+    },
+    {
+      "index": 69,
+      "content": "然后还加了一个最新的V1，将来是两个解码器。",
+      "tag": "BG"
+    },
+    {
+      "index": 70,
+      "content": "然后把这个图像、文字信息打包进去以后呢，传给diffusion模型的这个骨架，",
+      "tag": "BG"
+    },
+    {
+      "index": 71,
+      "content": "啊这个技术结构上面其实并没有看到说是一个颠覆性的创新，",
+      "tag": "CL"
+    },
+    {
+      "index": 72,
+      "content": "更多的其实是它呃，在这个训练的各个阶段呀，工程实现上啊，达到了一个比较全能的状态，是吧？",
+      "tag": "EV"
+    },
+    {
+      "index": 73,
+      "content": "那它也补齐了其他开源或者必远模型，对中文支持非常差的这样一个不足。",
+      "tag": "CL"
+    },
+    {
+      "index": 74,
+      "content": "所以如果你需要高质量的中文图像，或者说是呃，中文图像控制，那它就是你的首选。",
+      "tag": "IM"
+    },
+    {
+      "index": 75,
+      "content": "那不过现在需要吐槽的一点啊，",
+      "tag": "CS"
+    },
+    {
+      "index": 76,
+      "content": "就是它还没有真正意义上把所有模型开源，",
+      "tag": "CS"
+    },
+    {
+      "index": 77,
+      "content": "它只开源了文生图模型，",
+      "tag": "EV"
+    },
+    {
+      "index": 78,
+      "content": "那图像编辑模型呢，呃，还要等一段时间。",
+      "tag": "EV"
+    },
+    {
+      "index": 79,
+      "content": "那第三个就是这个Claude4.1新版本的发布啊，",
+      "tag": "BG"
+    },
+    {
+      "index": 80,
+      "content": "那4.1相比于4.0，最核心的提升还是在代码编辑上面，",
+      "tag": "CL"
+    },
+    {
+      "index": 81,
+      "content": "提升的幅度呢只有百分之二啊，",
+      "tag": "EV"
+    },
+    {
+      "index": 82,
+      "content": "这个在跑分上进行了一个体现。",
+      "tag": "EV"
+    },
+    {
+      "index": 83,
+      "content": "所以这个Claude4.1更像是一次小版本的升级，",
+      "tag": "CL"
+    },
+    {
+      "index": 84,
+      "content": "那这个团队针对大家大量去使用ClaudeCode这样的这样一个事实啊，",
+      "tag": "BG"
+    },
+    {
+      "index": 85,
+      "content": "收集了很多的反馈，",
+      "tag": "EV"
+    },
+    {
+      "index": 86,
+      "content": "因此可以进行更多的微调，",
+      "tag": "CL"
+    },
+    {
+      "index": 87,
+      "content": "从而带来更好的这样一个代码能力。",
+      "tag": "CL"
+    },
+    {
+      "index": 88,
+      "content": "它修复了之前的一些吐槽，",
+      "tag": "EV"
+    },
+    {
+      "index": 89,
+      "content": "比如说代码会被改到无法运行的状态，",
+      "tag": "EX"
+    },
+    {
+      "index": 90,
+      "content": "越改越复杂啊，",
+      "tag": "EX"
+    },
+    {
+      "index": 91,
+      "content": "它能够更好去适应一些编辑任务Agent的这些任务，是吧。",
+      "tag": "CL"
+    },
+    {
+      "index": 92,
+      "content": "所以这并不是一个改天换地的升级啊，",
+      "tag": "CL"
+    },
+    {
+      "index": 93,
+      "content": "更像是这个Anthropic找到了一种方法，",
+      "tag": "CL"
+    },
+    {
+      "index": 94,
+      "content": "不停地去迭代它的这样一个代码能力啊，",
+      "tag": "CL"
+    },
+    {
+      "index": 95,
+      "content": "让它更加专心地去聚焦于这个代码编写AI代码，",
+      "tag": "CL"
+    },
+    {
+      "index": 96,
+      "content": "让它更加专心地去聚焦于AI辅助编程这样的一个专项。",
+      "tag": "CL"
+    },
+    {
+      "index": 97,
+      "content": "所以你在日常聊天的任务上可能会几乎感受不到变化，",
+      "tag": "CL"
+    },
+    {
+      "index": 98,
+      "content": "你对于某些代码场景也可能几乎感受不到变化。",
+      "tag": "CL"
+    },
+    {
+      "index": 99,
+      "content": "是吧？",
+      "tag": "TR"
+    },
+    {
+      "index": 100,
+      "content": "呃，",
+      "tag": "NA"
+    },
+    {
+      "index": 101,
+      "content": "我认为在4.1之后还会有4.2、四点三、4.4，",
+      "tag": "CL"
+    },
+    {
+      "index": 102,
+      "content": "随着ClaudeCode更多的人使用，",
+      "tag": "BG"
+    },
+    {
+      "index": 103,
+      "content": "这项能力会逐渐逐渐地增强。",
+      "tag": "CL"
+    },
+    {
+      "index": 104,
+      "content": "那当然ClaudeCode最大的问题不是智能不足，",
+      "tag": "CL"
+    },
+    {
+      "index": 105,
+      "content": "不是代码编写能力的不足，",
+      "tag": "CL"
+    },
+    {
+      "index": 106,
+      "content": "而是贵啊，",
+      "tag": "CL"
+    },
+    {
+      "index": 107,
+      "content": "那可能贵也不一定是Claude的问题，",
+      "tag": "CS"
+    },
+    {
+      "index": 108,
+      "content": "可能是用户的问题，",
+      "tag": "CL"
+    },
+    {
+      "index": 109,
+      "content": "是吧？",
+      "tag": "TR"
+    },
+    {
+      "index": 110,
+      "content": "好，",
+      "tag": "NA"
+    },
+    {
+      "index": 111,
+      "content": "那所以这些视频的核心点就是我们看到了这些事。",
+      "tag": "CL"
+    },
+    {
+      "index": 112,
+      "content": "所以这些视频的核心内容就是我们虽然看到了这些产品的升级，",
+      "tag": "CS"
+    },
+    {
+      "index": 113,
+      "content": "每一项升级都不算特别大，",
+      "tag": "EV"
+    },
+    {
+      "index": 114,
+      "content": "却体现出来了未来的一种竞争环境的趋势，",
+      "tag": "CL"
+    },
+    {
+      "index": 115,
+      "content": "就是可能AI颠覆性的创新会越来越少，",
+      "tag": "CL"
+    },
+    {
+      "index": 116,
+      "content": "更多的是注重效率、普适性、专项能力的提升。",
+      "tag": "CL"
+    },
+    {
+      "index": 117,
+      "content": "呃，然后在此基础上呢，我们还会看到明天有这个GPT-5的出现，",
+      "tag": "BG"
+    },
+    {
+      "index": 118,
+      "content": "我们想来看一下啊GPT-5的提升到底也是否符合我们这样的一个预期，",
+      "tag": "IM"
+    },
+    {
+      "index": 119,
+      "content": "是吧？",
+      "tag": "NA"
+    },
+    {
+      "index": 120,
+      "content": "那以上就是这期视频的主要内容，",
+      "tag": "CL"
+    },
+    {
+      "index": 121,
+      "content": "如果你觉得我们的视频做得还不错的话，",
+      "tag": "CS"
+    },
+    {
+      "index": 122,
+      "content": "那欢迎点赞收藏转发评论。",
+      "tag": "IM"
+    },
+    {
+      "index": 123,
+      "content": "啊，我们的频道其实对我们来说都非常的重要，",
+      "tag": "CL"
+    },
+    {
+      "index": 124,
+      "content": "感谢你的收看，",
+      "tag": "NA"
+    },
+    {
+      "index": 125,
+      "content": "祝你学习顺利。",
+      "tag": "IM"
+    }
+  ]
+}

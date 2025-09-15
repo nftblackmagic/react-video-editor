@@ -41,7 +41,7 @@ async function testProcessArticle(articleName: keyof typeof TEST_ARTICLES) {
 		console.log("Processing article...\n");
 		const startTime = Date.now();
 
-		const result = await processArticle(article);
+		const result = await processArticle(article, []);
 
 		const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
 		console.log(`✅ Processing completed in ${processingTime} seconds\n`);

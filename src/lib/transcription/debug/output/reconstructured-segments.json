@@ -1,0 +1,1482 @@
+[
+  {
+    "text": "(动画特效声)",
+    "start": 0,
+    "end": 22.55,
+    "type": "audio_event",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-0"
+  },
+  {
+    "id": "segment-1",
+    "type": "word",
+    "text": "视频呢？",
+    "start": 22.55,
+    "end": 24.25,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": "(动画特效声)",
+    "start": 24.25,
+    "end": 39.769999999999996,
+    "type": "audio_event",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-2"
+  },
+  {
+    "id": "segment-3",
+    "type": "word",
+    "text": "嗯哼。",
+    "start": 39.769999999999996,
+    "end": 42.38,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-4",
+    "type": "word",
+    "text": "喂喂喂Hello，大家好啊，",
+    "start": 42.38,
+    "end": 47.08,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-5",
+    "type": "word",
+    "text": "呃，",
+    "start": 47.08,
+    "end": 47.64,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-6",
+    "type": "word",
+    "text": "这两天我们-",
+    "start": 47.64,
+    "end": 50.44,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": "(清嗓声)",
+    "start": 50.44,
+    "end": 52.065,
+    "type": "audio_event",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-7"
+  },
+  {
+    "id": "segment-8",
+    "type": "word",
+    "text": "Hello，大家好啊！",
+    "start": 52.065,
+    "end": 53.16,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-9",
+    "type": "word",
+    "text": "这两天我们看到密集发布了几个AI新产品啊，",
+    "start": 53.16,
+    "end": 57.78,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-10",
+    "type": "word",
+    "text": "所以从整体上来说，技术上的亮点并没有特别多。",
+    "start": 57.78,
+    "end": 63.48,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": "(热线联络中......)",
+    "start": 65,
+    "end": 65.555,
+    "type": "audio_event",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-11"
+  },
+  {
+    "id": "segment-12",
+    "type": "word",
+    "text": "Hello大家好啊，",
+    "start": 65.555,
+    "end": 66.7,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-13",
+    "type": "word",
+    "text": "就在这两天啊，密布的噼里噼里Hello大家好啊，",
+    "start": 66.7,
+    "end": 71.82,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-14",
+    "type": "word",
+    "text": "就在这两天密集地发布了几款AI的新产品。",
+    "start": 71.82,
+    "end": 76.18,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-15",
+    "type": "word",
+    "text": "整体上来说呢，我们认为技术上的亮点并没有特别的大啊，",
+    "start": 76.18,
+    "end": 81.84,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-16",
+    "type": "word",
+    "text": "更多的呢，其实是我们想聊一下我们针对这几款产品的-",
+    "start": 81.84,
+    "end": 88.46,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": "(热线联络中)",
+    "start": 88.46,
+    "end": 89.5,
+    "type": "audio_event",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-17"
+  },
+  {
+    "id": "segment-18",
+    "type": "word",
+    "text": "Hello大家好啊！",
+    "start": 89.5,
+    "end": 90.82,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-19",
+    "type": "word",
+    "text": "就在这两天，几大厂商密集地发布了几款AI新产品啊，",
+    "start": 90.82,
+    "end": 97.1,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-20",
+    "type": "word",
+    "text": "整体上来说，我们看到的技术上亮点并没有特别的大啊。",
+    "start": 97.1,
+    "end": 102.5,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-21",
+    "type": "word",
+    "text": "不过呢，我们想通过我们针对这三个产品最真实的一个体验和干，观感带大家感受一下啊，",
+    "start": 102.5,
+    "end": 112,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-22",
+    "type": "word",
+    "text": "这三个产品到底如何啊？",
+    "start": 112,
+    "end": 114.34,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-23",
+    "type": "word",
+    "text": "这期视频不会很长，",
+    "start": 114.34,
+    "end": 116.3,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-24",
+    "type": "word",
+    "text": "欢迎大家收看我们今天新一期的视频。",
+    "start": 116.3,
+    "end": 119.42,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-25",
+    "type": "word",
+    "text": "那首先我们来看一下啊，",
+    "start": 119.42,
+    "end": 121.08,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-26",
+    "type": "word",
+    "text": "就是前两天发布的GBTOSS，",
+    "start": 121.08,
+    "end": 124.12,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-27",
+    "type": "word",
+    "text": "它开源了两个版本，",
+    "start": 124.12,
+    "end": 125.34,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-28",
+    "type": "word",
+    "text": "一个120B的模型，",
+    "start": 125.34,
+    "end": 127,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-29",
+    "type": "word",
+    "text": "一个",
+    "start": 127,
+    "end": 127.22,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 127.22,
+    "end": 127.46,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-30"
+  },
+  {
+    "id": "segment-31",
+    "type": "word",
+    "text": "20B的模型啊，",
+    "start": 127.46,
+    "end": 129.258,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-32",
+    "type": "word",
+    "text": "那这两个模型的能力基本上是和O4Milli差不多的，",
+    "start": 129.258,
+    "end": 134.28,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-33",
+    "type": "word",
+    "text": "那这个产品呢，其实符合我们在上一期视频里面说的观点，",
+    "start": 134.28,
+    "end": 138.58,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-34",
+    "type": "word",
+    "text": "就是现在的模型强，不在于越做越大啊，",
+    "start": 138.58,
+    "end": 142.739,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-35",
+    "type": "word",
+    "text": "可能还在于越做越小。",
+    "start": 142.74,
+    "end": 145.78,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-36",
+    "type": "word",
+    "text": "啊针对这个120B或者说是20B的这样的一个体量啊，",
+    "start": 145.78,
+    "end": 150.48,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-37",
+    "type": "word",
+    "text": "它仍然是一个MOE的总体量。",
+    "start": 150.48,
+    "end": 153.8,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-38",
+    "type": "word",
+    "text": "那120B这个模型实际激活参数只有5.1B啊，",
+    "start": 153.8,
+    "end": 158.36,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-39",
+    "type": "word",
+    "text": "这个概念就可以理解成它是大幅地降低了推理的这个成本，",
+    "start": 158.36,
+    "end": 163.88,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-40",
+    "type": "word",
+    "text": "大幅地提升了推理的速度啊，",
+    "start": 163.88,
+    "end": 166.84,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-41",
+    "type": "word",
+    "text": "也是一个真正意义上能让小团队比较快速上手的模型。",
+    "start": 166.84,
+    "end": 171.84,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-42",
+    "type": "word",
+    "text": "这是为什么强调小团队？",
+    "start": 171.84,
+    "end": 173.76,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-43",
+    "type": "word",
+    "text": "因为这样一个体量的模型，你你算就是不仅仅是把它放到模型，放到这个GPU里面用比较小啊，",
+    "start": 173.76,
+    "end": 182.5,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-44",
+    "type": "word",
+    "text": "那真正，那为什么这样说呢？",
+    "start": 182.5,
+    "end": 186.28,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-45",
+    "type": "word",
+    "text": "它其实不仅仅是把这个模型能够装在GPU里面啊，",
+    "start": 186.28,
+    "end": 190.82,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-46",
+    "type": "word",
+    "text": "它是能够比较好地让小团队去真正商用这样的小模型啊。",
+    "start": 190.82,
+    "end": 196.12,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-47",
+    "type": "word",
+    "text": "所以，呃，这是为什么我们认为就是小团队比较适合它的原因。",
+    "start": 196.12,
+    "end": 201.22,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-48",
+    "type": "word",
+    "text": "那我们上一期视频里面说过，",
+    "start": 201.22,
+    "end": 203.06,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-49",
+    "type": "word",
+    "text": "就是KeyMeK2现在的宣传口径上面还是说追求万亿大模型嘛，",
+    "start": 203.06,
+    "end": 209.92,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-50",
+    "type": "word",
+    "text": "那这样的一个宣传口径其实已经比较落后了。",
+    "start": 209.92,
+    "end": 213.82,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-51",
+    "type": "word",
+    "text": "因为做大只能证明你工程能力达标，",
+    "start": 213.82,
+    "end": 217.66,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-52",
+    "type": "word",
+    "text": "你有能力能够去把模型做大，",
+    "start": 217.66,
+    "end": 220.2,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-53",
+    "type": "word",
+    "text": "但是做小现在才能证明你的工程能力强啊，",
+    "start": 220.2,
+    "end": 224.66,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-54",
+    "type": "word",
+    "text": "你是最前沿的这样的一个一个厂商啊，",
+    "start": 224.66,
+    "end": 228.04,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-55",
+    "type": "word",
+    "text": "这个是现阶段最核心的区别。",
+    "start": 228.04,
+    "end": 230.44,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-56",
+    "type": "word",
+    "text": "呃，所以你可以看到最优秀的厂商现在就是把模型做得越来越小。",
+    "start": 230.44,
+    "end": 236.5,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-57",
+    "type": "word",
+    "text": "呃，那从上面来说呢，",
+    "start": 236.5,
+    "end": 238.04000000000002,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-58",
+    "type": "word",
+    "text": "GPTOSS就是现在最适合想用低成本在本地部署一个比较好的模型的这个中小团队，是吧？",
+    "start": 238.04000000000002,
+    "end": 249.08,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-59",
+    "type": "word",
+    "text": "那从上面来说，GPTOSS",
+    "start": 249.08,
+    "end": 251.42,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 251.44,
+    "end": 251.7,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-60"
+  },
+  {
+    "id": "segment-61",
+    "type": "word",
+    "text": "最适合的就是低成本想在本地部署啊的这样的中小团队，",
+    "start": 251.7,
+    "end": 256.959,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-62",
+    "type": "word",
+    "text": "然后在严肃的这个生产环境里面，呃，需要进行比较好的评估，或者说是微调。",
+    "start": 256.959,
+    "end": 264,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-63",
+    "type": "word",
+    "text": "那当然对于OpenAI来说啊，",
+    "start": 264,
+    "end": 266.96,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-64",
+    "type": "word",
+    "text": "它其实想要达到的一个目的，",
+    "start": 266.96,
+    "end": 270.26,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-65",
+    "type": "word",
+    "text": "就是让开源社区继续为这个模型寻找更多的潜在的机会，",
+    "start": 270.26,
+    "end": 277.24,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-66",
+    "type": "word",
+    "text": "或者说是呃，寻找潜在的漏洞，是吧？",
+    "start": 277.24,
+    "end": 280.11,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-67",
+    "type": "word",
+    "text": "它还发布了一个奖励机制，",
+    "start": 280.11,
+    "end": 281.96,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-68",
+    "type": "word",
+    "text": "五十万美金的一个竞赛。",
+    "start": 281.96,
+    "end": 284.46,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 284.46,
+    "end": 285.18,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-69"
+  },
+  {
+    "id": "segment-70",
+    "type": "word",
+    "text": "那我们再来看一下这个第二个产品啊，",
+    "start": 285.18,
+    "end": 286.98,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-71",
+    "type": "word",
+    "text": "这个第二个产品叫做千问Image啊。",
+    "start": 286.98,
+    "end": 290.4,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-72",
+    "type": "word",
+    "text": "那我们对于千问也在上一期视频里面聊了很多，",
+    "start": 290.4,
+    "end": 294.14,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-73",
+    "type": "word",
+    "text": "就是阿里巴巴其实想在开源模型里面去占据排行榜第一的位置，",
+    "start": 294.14,
+    "end": 300.32,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-74",
+    "type": "word",
+    "text": "那现在千问Image",
+    "start": 300.32,
+    "end": 301.58,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 301.58,
+    "end": 302.219,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-75"
+  },
+  {
+    "id": "segment-76",
+    "type": "word",
+    "text": "再一次验证了它的这种野心，是吧？",
+    "start": 302.22,
+    "end": 306.1,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-77",
+    "type": "word",
+    "text": "呃，从某种程度上来说，这个千问Image呢，呃，已经是和现阶段最新的必远的图像模型啊，能够直接地竞争，做到同等的水平。",
+    "start": 306.1,
+    "end": 319.8,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-78",
+    "type": "word",
+    "text": "从它发布的技术报告里面看，指标已经和一线的必远水平打成了平手，甚至可能更好。",
+    "start": 319.8,
+    "end": 327.08,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-79",
+    "type": "word",
+    "text": "那在模型的具体选择上来说呢，它还是一个diffusion模型，",
+    "start": 327.08,
+    "end": 332.52,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-80",
+    "type": "word",
+    "text": "啊采用了最新的这个千问VL",
+    "start": 332.52,
+    "end": 335.26,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 335.26,
+    "end": 336.06,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-81"
+  },
+  {
+    "id": "segment-82",
+    "type": "word",
+    "text": "的呃，这个多模态模型啊，作为这个解码器，",
+    "start": 336.06,
+    "end": 339.98,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-83",
+    "type": "word",
+    "text": "然后还加了一个最新的V1，将来是两个解码器。",
+    "start": 339.98,
+    "end": 344.64,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-84",
+    "type": "word",
+    "text": "然后把这个图像、文字信息打包进去以后呢，传给diffusion模型的这个骨架，",
+    "start": 344.64,
+    "end": 351.18,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-85",
+    "type": "word",
+    "text": "啊这个技术结构上面其实并没有看到说是一个颠覆性的创新，",
+    "start": 351.18,
+    "end": 356.219,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-86",
+    "type": "word",
+    "text": "更多的其实是它呃，在这个训练的各个阶段呀，工程实现上啊，达到了一个比较全能的状态，是吧？",
+    "start": 356.22,
+    "end": 364.52,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-87",
+    "type": "word",
+    "text": "那它也补齐了其他开源或者必远模型，对中文支持非常差的这样一个不足。",
+    "start": 364.52,
+    "end": 370.719,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-88",
+    "type": "word",
+    "text": "所以如果你需要高质量的中文图像，或者说是呃，中文图像控制，那它就是你的首选。",
+    "start": 370.992,
+    "end": 379.452,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-89",
+    "type": "word",
+    "text": "那不过现在需要吐槽的一点啊，",
+    "start": 379.452,
+    "end": 381.572,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-90",
+    "type": "word",
+    "text": "就是它还没有真正意义上把所有模型开源，",
+    "start": 381.572,
+    "end": 383.771,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-91",
+    "type": "word",
+    "text": "它只开源了文生图模型，",
+    "start": 383.772,
+    "end": 386.112,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-92",
+    "type": "word",
+    "text": "那图像编辑模型呢，呃，还要等一段时间。",
+    "start": 386.112,
+    "end": 391.122,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-93",
+    "type": "word",
+    "text": "那第三个就是这个Claude4.1新版本的发布啊，",
+    "start": 391.322,
+    "end": 394.812,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-94",
+    "type": "word",
+    "text": "那4.1相比于",
+    "start": 394.812,
+    "end": 396.412,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 396.412,
+    "end": 396.692,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-95"
+  },
+  {
+    "id": "segment-96",
+    "type": "word",
+    "text": "4.0，最核心的提升还是在代码编辑上面，",
+    "start": 396.692,
+    "end": 400.392,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-97",
+    "type": "word",
+    "text": "提升的幅度呢只有百分之二啊，",
+    "start": 400.872,
+    "end": 403.012,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-98",
+    "type": "word",
+    "text": "这个在跑分上进行了一个体现。",
+    "start": 403.012,
+    "end": 405.592,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-99",
+    "type": "word",
+    "text": "所以这个Claude",
+    "start": 405.592,
+    "end": 406.642,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 406.642,
+    "end": 406.852,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-100"
+  },
+  {
+    "id": "segment-101",
+    "type": "word",
+    "text": "4.1",
+    "start": 406.852,
+    "end": 407.092,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 407.092,
+    "end": 407.332,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-102"
+  },
+  {
+    "id": "segment-103",
+    "type": "word",
+    "text": "更像是一次小版本的升级，",
+    "start": 407.332,
+    "end": 409.832,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-104",
+    "type": "word",
+    "text": "那这个团队针对大家大量去使用ClaudeCode",
+    "start": 409.832,
+    "end": 413.432,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "text": " ",
+    "start": 413.432,
+    "end": 414.591,
+    "type": "spacing",
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null,
+    "id": "segment-105"
+  },
+  {
+    "id": "segment-106",
+    "type": "word",
+    "text": "这样的这样一个事实啊，",
+    "start": 414.592,
+    "end": 415.831,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-107",
+    "type": "word",
+    "text": "收集了很多的反馈，",
+    "start": 415.832,
+    "end": 417.051,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-108",
+    "type": "word",
+    "text": "因此可以进行更多的微调，",
+    "start": 417.052,
+    "end": 419.512,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-109",
+    "type": "word",
+    "text": "从而带来更好的这样一个代码能力。",
+    "start": 419.512,
+    "end": 422.952,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-110",
+    "type": "word",
+    "text": "它修复了之前的一些吐槽，",
+    "start": 422.952,
+    "end": 424.912,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-111",
+    "type": "word",
+    "text": "比如说代码会被改到无法运行的状态，",
+    "start": 424.912,
+    "end": 427.972,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-112",
+    "type": "word",
+    "text": "越改越复杂啊，",
+    "start": 427.972,
+    "end": 429.812,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-113",
+    "type": "word",
+    "text": "它能够更好去适应一些编辑任务Agent的这些任务，是吧。",
+    "start": 429.912,
+    "end": 434.712,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-114",
+    "type": "word",
+    "text": "所以这并不是一个改天换地的升级啊，",
+    "start": 434.712,
+    "end": 439.092,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-115",
+    "type": "word",
+    "text": "更像是这个Anthropic找到了一种方法，",
+    "start": 439.092,
+    "end": 441.552,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-116",
+    "type": "word",
+    "text": "不停地去迭代它的这样一个代码能力啊，",
+    "start": 441.552,
+    "end": 445.192,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-117",
+    "type": "word",
+    "text": "让它更加专心地去聚焦于这个代码编写AI代码，",
+    "start": 445.192,
+    "end": 452.632,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-118",
+    "type": "word",
+    "text": "让它更加专心地去聚焦于AI辅助编程这样的一个专项。",
+    "start": 452.632,
+    "end": 458.572,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-119",
+    "type": "word",
+    "text": "所以你在日常聊天的任务上可能会几乎感受不到变化，",
+    "start": 458.572,
+    "end": 464.332,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-120",
+    "type": "word",
+    "text": "你对于某些代码场景也可能几乎感受不到变化。",
+    "start": 464.332,
+    "end": 467.752,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-121",
+    "type": "word",
+    "text": "是吧？",
+    "start": 467.752,
+    "end": 468.5215,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-122",
+    "type": "word",
+    "text": "呃，",
+    "start": 468.5225,
+    "end": 468.912,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-123",
+    "type": "word",
+    "text": "我认为在4.1之后还会有4.2、四点三、4.4，",
+    "start": 468.912,
+    "end": 472.572,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-124",
+    "type": "word",
+    "text": "随着ClaudeCode更多的人使用，",
+    "start": 472.572,
+    "end": 475.352,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-125",
+    "type": "word",
+    "text": "这项能力会逐渐逐渐地增强。",
+    "start": 475.352,
+    "end": 477.872,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-126",
+    "type": "word",
+    "text": "那当然ClaudeCode最大的问题不是智能不足，",
+    "start": 477.872,
+    "end": 481.672,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-127",
+    "type": "word",
+    "text": "不是代码编写能力的不足，",
+    "start": 481.672,
+    "end": 483.312,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-128",
+    "type": "word",
+    "text": "而是贵啊，",
+    "start": 483.312,
+    "end": 484.452,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-129",
+    "type": "word",
+    "text": "那可能贵也不一定是Claude的问题，",
+    "start": 484.452,
+    "end": 487.312,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-130",
+    "type": "word",
+    "text": "可能是用户的问题，",
+    "start": 487.312,
+    "end": 490.352,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-131",
+    "type": "word",
+    "text": "是吧？",
+    "start": 490.352,
+    "end": 491.142,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-132",
+    "type": "word",
+    "text": "好，",
+    "start": 491.142,
+    "end": 491.142,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-133",
+    "type": "word",
+    "text": "那所以这些视频的核心点就是我们看到了这些事。",
+    "start": 491.142,
+    "end": 498.472,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-134",
+    "type": "word",
+    "text": "所以这些视频的核心内容就是我们虽然看到了这些产品的升级，",
+    "start": 498.472,
+    "end": 503.692,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-135",
+    "type": "word",
+    "text": "每一项升级都不算特别大，",
+    "start": 503.692,
+    "end": 505.972,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-136",
+    "type": "word",
+    "text": "却体现出来了未来的一种竞争环境的趋势，",
+    "start": 505.972,
+    "end": 509.372,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-137",
+    "type": "word",
+    "text": "就是可能AI颠覆性的创新会越来越少，",
+    "start": 509.372,
+    "end": 514.732,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-138",
+    "type": "word",
+    "text": "更多的是注重效率、普适性、专项能力的提升。",
+    "start": 514.732,
+    "end": 518.992,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-139",
+    "type": "word",
+    "text": "呃，然后在此基础上呢，我们还会看到明天有这个GPT-5的出现，",
+    "start": 519.312,
+    "end": 524.092,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-140",
+    "type": "word",
+    "text": "我们想来看一下啊GPT-5的提升到底也是否符合我们这样的一个预期，",
+    "start": 524.092,
+    "end": 529.872,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-141",
+    "type": "word",
+    "text": "是吧？",
+    "start": 529.872,
+    "end": 531.392,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-142",
+    "type": "word",
+    "text": "那以上就是这期视频的主要内容，",
+    "start": 531.392,
+    "end": 534.052,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-143",
+    "type": "word",
+    "text": "如果你觉得我们的视频做得还不错的话，",
+    "start": 534.052,
+    "end": 535.792,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-144",
+    "type": "word",
+    "text": "那欢迎点赞收藏转发评论。",
+    "start": 535.792,
+    "end": 538.652,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-145",
+    "type": "word",
+    "text": "啊，我们的频道其实对我们来说都非常的重要，",
+    "start": 538.652,
+    "end": 541.472,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-146",
+    "type": "word",
+    "text": "感谢你的收看，",
+    "start": 541.472,
+    "end": 543.092,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  },
+  {
+    "id": "segment-147",
+    "type": "word",
+    "text": "祝你学习顺利。",
+    "start": 543.092,
+    "end": 548.572,
+    "speaker_id": null,
+    "logprob": 0,
+    "characters": null
+  }
+]

@@ -3,7 +3,11 @@
  * Server-only exports for LLM operations
  */
 
-import "server-only";
+// Only enforce server-only in production builds
+// This allows tsx scripts to work in development
+if (process.env.NODE_ENV === "production") {
+	require("server-only");
+}
 
 // Export text operations
 export { processArticle } from "./operations/text-operations";

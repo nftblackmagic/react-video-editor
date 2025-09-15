@@ -26,14 +26,11 @@ ${article}
 Now, follow these guidelines to complete the task:
 
 1. Segmentation: Based on the article structure, divide the article into paragraphs. Do not create or invent any new content - use only the text provided in the input article.
-
-2. Analysis: Carefully examine the content, looking for natural breaks in topics, shifts in ideas, or transitions that would indicate appropriate places to start new paragraphs.
-
-3. Division: Split the text at these identified points to create distinct paragraphs. Each paragraph should be a coherent unit of text. Each paragraph length should be almost the same.
-
-4. Review: After dividing the text, review your work to ensure that each paragraph forms a coherent unit and that the division makes sense in the context of the overall article. Do not add any new content.
-
-5. Output format: Present your final result in the following JSON format:
+2. Exactly the same as the input article. Do not add any new content. Do not remove any content. Do not change the punctuation. 
+3. Analysis: Carefully examine the content, looking for natural breaks in topics, shifts in ideas, or transitions that would indicate appropriate places to start new paragraphs.
+4. Division: Split the text at these identified points to create distinct paragraphs. Each paragraph should be a coherent unit of text. Each paragraph length should be almost the same.
+5. Review: After dividing the text, review your work to ensure that each paragraph forms a coherent unit and that the division makes sense in the context of the overall article. Do not add any new content.
+6. Output format: Present your final result in the following JSON format:
 
 {{
 "paragraphs": [
@@ -162,6 +159,55 @@ Analyze the passage systematically and provide your response in the exact JSON f
 	];
 }
 
+export function buildGroupEDUsMessages(): ModelMessage[] {
+	return [
+		{
+			role: "system",
+			content: `You are an expert in Rhetorical Structure Theory (RST). Your task is to analyze the user provided following JSON format segments, then combine the independent WORDS into Elementary Discourse Units (EDUs).
+
+Here is the JSON format segments example:
+{{
+full_text: "Hello, World! How are you? 你 好 吗 ？",
+word_index: [{"text": "Hello, ", "index": 0}, 
+{"text": "World!", "index": 1}, 
+{"text": "How", "index": 3}, 
+{"text": "are", "index": 4}, 
+{"text": "you?", "index": 5}, 
+{"text": "你", index: 8}, 
+{"text": "好", index: 9}, 
+{"text": "吗", index: 10},
+{"text": "？", index: 11}]}}
+
+
+Follow these guidelines to complete the task:
+1. The provided input has full_text and word_index. word_index are independent WORDS with index. If we combine all of them, we will get the full_text.
+2. You need to split the full_text into Elementary Discourse Units (EDUs). The EDU should be the smallest possible unit.
+3. User will provide the segments in multiple rounds because the segments are long. The last Segment will looks like {text: "<END>", index: -1}. You need to combine the segments until the last Segment.
+4. If you don't see the <END> or index is -1, the means user will provide the next round of segments. So you can leave the last few segments for the next round to combine if they cannot be combined into a valid EDU.
+5. User provided segments are in the order of the original text. However, the index might not always adjacent.
+
+OUTPUT FORMAT:
+{{
+"groups": [[0, 1, 2], [ 4, 5], [6, 7, 9, 10], [11]]
+}}
+
+Example:
+Input: [{"text": "Hello, ", "index": 0}, {"text": "World!", "index": 1}, {"text": "How", "index": 3}, {"text": "are", "index": 4}, {"text": "you?", "index": 5}, {"text": "你", index: 8}, {"text": "好", index: 10}, {"text": "吗", index: 11}, {"text": "？", index: 13}]
+
+Output: {
+"groups": 
+[
+[0, 1],                          	//Hello, World! is a EDU.
+[3, 4, 5],   						//How are you? is a EDU.
+[8, 10, 11, 13] 					//你好吗？ is a EDU.
+]}
+
+User will provide the segments as follows:
+			`,
+		},
+	];
+}
+
 /**
  * Prompt template collection for text operations
  * Can be extended with more text processing prompts
@@ -169,6 +215,7 @@ Analyze the passage systematically and provide your response in the exact JSON f
 export const TEXT_PROMPTS = {
 	PARAGRAPH_SPLIT: buildParagraphSplitMessages,
 	EDU_CREATION: buildEduCreationMessages,
+	GROUP_EDUS: buildGroupEDUsMessages,
 	// Future prompts can be added here:
 	// SUMMARIZE: buildSummarizeMessages,
 	// REWRITE: buildRewriteMessages,

@@ -3,24 +3,28 @@
  * This file should only be imported in server-side code (Server Actions, API routes, etc.)
  */
 
-import "server-only"; // This will throw an error if imported on the client
+// Only enforce server-only in production builds
+// This allows tsx scripts to work in development
+if (process.env.NODE_ENV === "production") {
+	require("server-only");
+}
 
-import { TranscriptionService } from "./interface";
-import { ElevenLabsTranscriptionService } from "./providers/elevenlabs";
 import {
-	TranscriptionProvider,
-	TranscriptionError,
-	TranscriptionErrorType,
-	TranscriptionOptions,
-	TranscriptionResponse,
-} from "./types";
-import {
+	getConfiguredProviders,
 	getDefaultProvider,
 	getProviderConfig,
 	isProviderConfigured,
-	getConfiguredProviders,
 	transcriptionConfig,
 } from "./config";
+import { TranscriptionService } from "./interface";
+import { ElevenLabsTranscriptionService } from "./providers/elevenlabs";
+import {
+	TranscriptionError,
+	TranscriptionErrorType,
+	TranscriptionOptions,
+	TranscriptionProvider,
+	TranscriptionResponse,
+} from "./types";
 
 // Cache for service instances
 const serviceCache = new Map<TranscriptionProvider, TranscriptionService>();

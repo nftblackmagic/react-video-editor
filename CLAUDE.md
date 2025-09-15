@@ -208,7 +208,7 @@ Client (Browser)                     Server
      │                              ├─ 6. Call ElevenLabs API
      │                              │    (providers/elevenlabs.ts)
      │                              │
-     ◀────────────────────────────── 7. Return transcription
+     ◀──────────────────────────────-- 7. Return transcription
      │                              │
      └─ 8. Display results           │
 ```

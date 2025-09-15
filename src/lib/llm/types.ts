@@ -3,6 +3,7 @@
  * Type definitions and schemas for LLM operations
  */
 
+import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 /**
@@ -27,11 +28,19 @@ export const EDUSchema = z.object({
 });
 
 export type EDUSResult = z.infer<typeof EDUSchema>;
+
+export const GroupEDUSchema = z.object({
+	groups: z.array(z.array(z.number())),
+});
+
+export type GroupEDUSResult = z.infer<typeof GroupEDUSchema>;
+
 /**
  * Common model configurations
  * These can be overridden per operation
  */
 export const MODELS = {
+	split: google("gemini-2.5-pro"),
 	text: openai("o3"),
 	fast: openai("o3-mini"),
 } as const;

@@ -2,13 +2,16 @@
 
 import { TranscriptSegment } from "@/features/editor/transcript/types";
 import {
-	getTranscriptionService,
+	getTranscriptionOrchestrator,
+	type OrchestratorOptions,
+} from "@/lib/transcription/orchestrator";
+import {
 	TranscriptionError,
 	TranscriptionErrorType,
 } from "@/lib/transcription/server";
 
 /**
- * Server action to transcribe audio/video using the configured service
+ * Server action to transcribe audio/video using the orchestrator
  * @param url - URL of the media file to transcribe
  * @param language - Language code for transcription
  * @returns Array of transcript segments
@@ -18,15 +21,18 @@ export async function transcribeAction(
 	language: string,
 ): Promise<TranscriptSegment[]> {
 	try {
-		// Get the transcription service (will use configured provider)
-		const service = getTranscriptionService();
+		// Get the transcription orchestrator
+		const orchestrator = getTranscriptionOrchestrator();
 
-		// Transcribe the media
-		const response = await service.transcribe(url, {
+		// Prepare orchestrator options
+		const options: OrchestratorOptions = {
 			language,
 			diarize: true,
 			wordTimestamps: true,
-		});
+		};
+
+		// Transcribe the media through orchestrator
+		const response = await orchestrator.transcribe(url, options);
 
 		return response.segments;
 	} catch (error) {
