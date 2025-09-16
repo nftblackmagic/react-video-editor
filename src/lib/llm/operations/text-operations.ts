@@ -11,6 +11,7 @@ import {
 	EDU,
 	EDUSResult,
 	EDUSchema,
+	FullEDU,
 	GroupEDUSResult,
 	GroupEDUSchema,
 	MODELS,
@@ -269,42 +270,285 @@ export async function processArticle(
 	return { edus: finalEDUs };
 }
 
+async function groupEDUsSlice(
+	segments: TranscriptSegment[],
+): Promise<{ unprocessedWords: TranscriptSegment[]; fullEDUs: FullEDU[] }> {
+	const processedSegments = prepareSegmentsForGrouping(segments);
+	const edus = await groupEDUsSliceWithRetry(processedSegments);
+	const { fullEDUs, unprocessedWords } = createFullEDUs(edus, segments);
+	return { unprocessedWords: unprocessedWords, fullEDUs: fullEDUs };
+}
+
+async function groupEDUsSliceWithRetry(
+	segments: LLMSegment[],
+): Promise<GroupEDUSResult> {
+	const maxRetries = 3;
+	for (const retryCount of range(0, maxRetries)) {
+		const edus = await groupEDUsByLLM(segments);
+		const isValid = validateGroupEDUs(edus, segments);
+		if (isValid) {
+			return edus;
+		}
+	}
+	throw new Error("Failed to group EDUs after 3 attempts");
+}
+
+function createFullEDUs(
+	edus: GroupEDUSResult,
+	segments: TranscriptSegment[],
+): { fullEDUs: FullEDU[]; unprocessedWords: TranscriptSegment[] } {
+	// get edu spliting index from edus.edus
+	const eduSplitingIndex = getEduSplitingIndex(edus);
+	console.log("Edu spliting index:", eduSplitingIndex);
+	// get word spliting index from segments
+	const wordSplitingIndex = getWordSplitingIndex(segments);
+	console.log("Word spliting index:", wordSplitingIndex);
+	// fix edu spliting index by using word spliting index
+	const revisedEduSplitingIndex = reviseEduSplitingIndex(
+		eduSplitingIndex,
+		wordSplitingIndex,
+	);
+	console.log("Revised edu spliting index:", revisedEduSplitingIndex);
+	// construct full EDU.
+	return constructFullEDUs(revisedEduSplitingIndex, segments);
+}
+
+function constructFullEDUs(
+	revisedEduSplitingIndex: number[],
+	segments: TranscriptSegment[],
+): { fullEDUs: FullEDU[]; unprocessedWords: TranscriptSegment[] } {
+	const fullEDUs: FullEDU[] = [];
+	let wordIndex = 0;
+	let index = 0;
+	let eduIndex = 0;
+	for (const eduSplitingIndex of revisedEduSplitingIndex) {
+		const words: TranscriptSegment[] = [];
+		while (index < eduSplitingIndex) {
+			words.push(segments[wordIndex]);
+			// console.log("Pushing word:", segments[wordIndex]);
+			index += segments[wordIndex].text.length;
+			wordIndex++;
+		}
+		fullEDUs.push({
+			edu_index: eduIndex,
+			edu_content: words.map((word) => word.text).join(""),
+			edu_start: words[0].start,
+			edu_end: words[words.length - 1].end,
+			words: words,
+		});
+		eduIndex++;
+	}
+
+	const unprocessedWords = segments.slice(wordIndex);
+
+	return { fullEDUs, unprocessedWords };
+}
+
+function getEduSplitingIndex(edus: GroupEDUSResult): number[] {
+	const eduSplitingIndex: number[] = [];
+	let currentIndex = 0;
+	for (const edu of edus.edus) {
+		currentIndex += edu.content.length;
+		eduSplitingIndex.push(currentIndex);
+	}
+	return eduSplitingIndex;
+}
+
+function getWordSplitingIndex(segments: TranscriptSegment[]): number[] {
+	const wordSplitingIndex: number[] = [];
+	let currentIndex = 0;
+	for (const segment of segments) {
+		currentIndex += segment.text.length;
+		wordSplitingIndex.push(currentIndex);
+	}
+	return wordSplitingIndex;
+}
+
+function reviseEduSplitingIndex(
+	eduSplitingIndex: number[],
+	wordSplitingIndex: number[],
+): number[] {
+	const revisedEduSplitingIndex: number[] = [];
+	// check if eduSplitingIndex is the subset of wordSplitingIndex. If not, revise the non-existing eduSplitingIndex to the nearest wordSplitingIndex.
+
+	for (const eduIndex of eduSplitingIndex) {
+		if (wordSplitingIndex.includes(eduIndex)) {
+			// EDU index aligns with word boundary, keep it
+			revisedEduSplitingIndex.push(eduIndex);
+		} else {
+			// Find the nearest word splitting index
+			const nearestIndex = findNearestWordBoundary(eduIndex, wordSplitingIndex);
+			revisedEduSplitingIndex.push(nearestIndex);
+		}
+	}
+
+	return revisedEduSplitingIndex;
+}
+
+function findNearestWordBoundary(
+	targetIndex: number,
+	wordBoundaries: number[],
+): number {
+	// Handle edge cases
+	if (wordBoundaries.length === 0) {
+		return targetIndex;
+	}
+
+	if (targetIndex <= wordBoundaries[0]) {
+		return wordBoundaries[0];
+	}
+
+	if (targetIndex >= wordBoundaries[wordBoundaries.length - 1]) {
+		return wordBoundaries[wordBoundaries.length - 1];
+	}
+
+	// Binary search to find the nearest boundary
+	let left = 0;
+	let right = wordBoundaries.length - 1;
+
+	while (left < right - 1) {
+		const mid = Math.floor((left + right) / 2);
+		if (wordBoundaries[mid] === targetIndex) {
+			return targetIndex;
+		}
+		if (wordBoundaries[mid] < targetIndex) {
+			left = mid;
+		} else {
+			right = mid;
+		}
+	}
+
+	// Choose the closest boundary
+	const leftDiff = Math.abs(targetIndex - wordBoundaries[left]);
+	const rightDiff = Math.abs(targetIndex - wordBoundaries[right]);
+
+	// Prefer the later boundary if distances are equal (to avoid cutting words)
+	return leftDiff <= rightDiff ? wordBoundaries[left] : wordBoundaries[right];
+}
+
 export async function groupEDUs(
 	segments: TranscriptSegment[],
-): Promise<EDUSResult> {
-	const processedSegments = prepareSegmentsForGrouping(segments);
+): Promise<FullEDU[]> {
+	let wordOnlySegments = segments.filter((segment) => segment.type === "word");
+	const sliceWindow = 500;
+	const finalEDUs: FullEDU[] = [];
+	while (wordOnlySegments.length > 0) {
+		const { fullEDUs, unprocessedWords } = await groupEDUsSlice(
+			wordOnlySegments.slice(0, sliceWindow),
+		);
 
-	const groupedEDUsIndex = await groupEDUsByLLM(processedSegments);
+		console.log("Full EDUs:", fullEDUs);
+		console.log(
+			"Unprocessed Words:",
+			unprocessedWords.map((word) => word.text),
+		);
 
-	const isValid = validateGroupEDUs(groupedEDUsIndex, processedSegments);
-
-	if (!isValid) {
-		throw new Error("Grouped EDUs index is not valid");
+		wordOnlySegments = wordOnlySegments.slice(sliceWindow);
+		wordOnlySegments = [...unprocessedWords, ...wordOnlySegments];
+		finalEDUs.push(...fullEDUs);
 	}
 
-	const finalEDUs: EDU[] = [];
+	const recoveredEDUs = recoverEDUs(finalEDUs, segments);
 
-	//Create a index to word map from processedSegments
-	const indexToWordMap = new Map<number, string>();
-	for (let i = 0; i < processedSegments.length; i++) {
-		indexToWordMap.set(i, processedSegments[i].text);
-	}
+	return recoveredEDUs;
+}
 
-	for (let i = 0; i < groupedEDUsIndex.groups.length; i++) {
-		let accumulatedText = "";
-		console.log("Grouped EDUs index:", groupedEDUsIndex.groups[i]);
-		for (const index of groupedEDUsIndex.groups[i]) {
-			accumulatedText += indexToWordMap.get(index) || "";
+export function recoverEDUs(
+	edus: FullEDU[],
+	segments: TranscriptSegment[],
+): FullEDU[] {
+	const recoveredEDUs: FullEDU[] = [];
+
+	// Create a map of word segments to their corresponding EDU
+	const wordToEduMap = new Map<TranscriptSegment, FullEDU>();
+	for (const edu of edus) {
+		for (const word of edu.words) {
+			wordToEduMap.set(word, edu);
 		}
-		console.log("Accumulated text:", accumulatedText);
-		finalEDUs.push({
-			content: accumulatedText,
-			index: i,
-			tag: "",
-		});
 	}
 
-	return { edus: finalEDUs };
+	// Track which word segments have been processed
+	const processedWords = new Set<TranscriptSegment>();
+	let i = 0;
+
+	while (i < segments.length) {
+		const segment = segments[i];
+
+		if (segment.type === "word") {
+			// Skip if this word has already been processed
+			if (processedWords.has(segment)) {
+				i++;
+				continue;
+			}
+
+			const edu = wordToEduMap.get(segment);
+			if (!edu) {
+				// This word doesn't belong to any EDU (shouldn't happen normally)
+				i++;
+				continue;
+			}
+
+			// Find all consecutive words that belong to the same EDU
+			const eduWords: TranscriptSegment[] = [];
+			let j = i;
+
+			while (j < segments.length) {
+				const currentSegment = segments[j];
+
+				// Stop if we hit a non-word segment
+				if (currentSegment.type !== "word") {
+					break;
+				}
+
+				// Stop if this word belongs to a different EDU
+				const currentEdu = wordToEduMap.get(currentSegment);
+				if (currentEdu !== edu) {
+					break;
+				}
+
+				// Stop if we've already processed this word
+				if (processedWords.has(currentSegment)) {
+					break;
+				}
+
+				// Add this word to the current EDU group
+				eduWords.push(currentSegment);
+				processedWords.add(currentSegment);
+				j++;
+			}
+
+			// Create an EDU from the collected words
+			if (eduWords.length > 0) {
+				recoveredEDUs.push({
+					edu_index: 0, // Will be renumbered later
+					edu_content: eduWords.map(w => w.text).join(""),
+					edu_start: eduWords[0].start,
+					edu_end: eduWords[eduWords.length - 1].end,
+					words: eduWords,
+				});
+			}
+
+			i = j;
+		} else {
+			// Non-word segment (spacing or audio_event)
+			// Add it as its own EDU
+			recoveredEDUs.push({
+				edu_index: 0, // Will be renumbered later
+				edu_content: segment.text,
+				edu_start: segment.start,
+				edu_end: segment.end,
+				words: [segment],
+			});
+			i++;
+		}
+	}
+
+	// Renumber all EDUs sequentially
+	for (let i = 0; i < recoveredEDUs.length; i++) {
+		recoveredEDUs[i].edu_index = i;
+	}
+
+	return recoveredEDUs;
 }
 
 function prepareSegmentsForGrouping(
@@ -323,30 +567,12 @@ function prepareSegmentsForGrouping(
 	return processedSegments;
 }
 
-function buildMessages(
-	previousMessages: ModelMessage[],
-	fullText: string,
-	wordIndex: LLMSegment[],
-): ModelMessage[] {
-	const newMessages: ModelMessage = {
-		role: "user",
-		content: [
-			{
-				type: "text",
-				text: JSON.stringify({ full_text: fullText, word_index: wordIndex }),
-			},
-		],
-	};
-	return [...previousMessages, newMessages];
-}
-
 async function groupEDUsByLLM(
 	segments: LLMSegment[],
 ): Promise<GroupEDUSResult> {
-	const systemMessages = TEXT_PROMPTS.GROUP_EDUS();
-	const fullText = segments.map((segment) => segment.text).join("");
-	const addEndSegments = [...segments, { text: "<END>", index: -1 }];
-	const messages = buildMessages(systemMessages, fullText, addEndSegments);
+	const paragraph = segments.map((segment) => segment.text).join("");
+	console.log("Paragraph:", paragraph);
+	const messages = TEXT_PROMPTS.GROUP_EDUS(paragraph);
 	const result = await generateObject({
 		model: MODELS.text,
 		messages,
@@ -357,18 +583,21 @@ async function groupEDUsByLLM(
 }
 
 function validateGroupEDUs(
-	groupedEDUsIndex: GroupEDUSResult,
+	edus: GroupEDUSResult,
 	segments: LLMSegment[],
 ): boolean {
-	const flatGroups = groupedEDUsIndex.groups.flat();
-	// flat groups index should be the same as segments index
-	if (flatGroups.length !== segments.length) {
+	const paragraph = segments.map((segment) => segment.text).join("");
+	const unprocessedWords = edus.unprocessed_words;
+	const flatEdus = edus.edus.map((edu) => edu.content).join("");
+	if (paragraph !== flatEdus + unprocessedWords) {
+		console.error("Grouped EDUs validation failed");
+		console.error("Paragraph:", paragraph);
+		console.error("Flat EDUs:", flatEdus);
+		console.error("Unprocessed Words:", unprocessedWords);
+		console.error("Paragraph length :", paragraph.length);
+		console.error("Flat EDUs length:", flatEdus.length);
+		console.error("Unprocessed Words length:", unprocessedWords.length);
 		return false;
-	}
-	for (let i = 0; i < flatGroups.length; i++) {
-		if (flatGroups[i] !== segments[i].index) {
-			return false;
-		}
 	}
 	return true;
 }

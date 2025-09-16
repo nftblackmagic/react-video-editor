@@ -1,19 +1,15 @@
+import { transcribeAction } from "@/app/(edit)/actions/transcribe";
+import { isTranscribableMedia } from "@/lib/transcription/client-utils";
+import { type ProjectUpload, projectStorage } from "@/utils/project";
+import { type UploadCallbacks, processUpload } from "@/utils/upload-service";
+import { dispatch } from "@designcombo/events";
+import { ADD_AUDIO, ADD_IMAGE, ADD_VIDEO } from "@designcombo/state";
+import { generateId } from "@designcombo/timeline";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { processUpload, type UploadCallbacks } from "@/utils/upload-service";
-import { isTranscribableMedia } from "@/lib/transcription/client-utils";
 import { TranscriptSegment } from "../transcript/types";
-import useTranscriptStore from "./use-transcript-store";
 import useProjectStore from "./use-project-store";
-import { dispatch } from "@designcombo/events";
-import { ADD_VIDEO, ADD_IMAGE, ADD_AUDIO } from "@designcombo/state";
-import { generateId } from "@designcombo/timeline";
-import { transcribeAction } from "@/app/(edit)/actions/transcribe";
-import {
-	addSegmentedMedia,
-	SegmentSplitOptions,
-} from "../utils/segment-splitter";
-import { projectStorage, type ProjectUpload } from "@/utils/project";
+import useTranscriptStore from "./use-transcript-store";
 
 interface UploadFile {
 	id: string;

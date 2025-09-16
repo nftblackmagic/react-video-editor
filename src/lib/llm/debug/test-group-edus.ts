@@ -8,8 +8,7 @@ config();
 
 async function main() {
 	// load the input json file
-	const inputPath =
-		"src/lib/transcription/debug/input/chinese-transcript-short.json";
+	const inputPath = "src/lib/transcription/debug/input/chinese-transcript.json";
 	console.log("Loading input from:", inputPath);
 
 	const input = fs.readFileSync(inputPath, "utf8");
@@ -20,7 +19,7 @@ async function main() {
 
 	const groupedEDUs = await groupEDUs(segments);
 
-	console.log("EDUs groups:", groupedEDUs.edus);
+	console.log("EDUs groups:", groupedEDUs);
 
 	// save the edus to a json file
 	fs.writeFileSync(
