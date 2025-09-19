@@ -10,17 +10,17 @@ import {
 import { TIMELINE_SEEK } from "@designcombo/timeline";
 
 export const useTranscriptSync = () => {
-	const { setActiveSegmentByTime, setActiveSegmentById } = useTranscriptStore();
+	const { setActiveEDUByTime, setActiveEDUByIndex } = useTranscriptStore();
 
 	useEffect(() => {
 		// Listen for Transcript selection → trigger seek
 		const selectSubscription = subject
 			.pipe(filter(({ key }) => key === TRANSCRIPT_SELECT))
 			.subscribe((event) => {
-				const { segmentId, time } = event.value?.payload || {};
-				if (segmentId) {
-					// Set the active segment immediately by ID
-					setActiveSegmentById(segmentId);
+				const { eduIndex, time } = event.value?.payload || {};
+				if (typeof eduIndex === "number") {
+					// Set the active EDU immediately by index
+					setActiveEDUByIndex(eduIndex);
 				}
 				if (typeof time === "number") {
 					// Dispatch seek event to player (reuse existing PLAYER_SEEK)
@@ -34,7 +34,7 @@ export const useTranscriptSync = () => {
 			.subscribe((event) => {
 				const { time } = event.value?.payload || {};
 				if (typeof time === "number") {
-					setActiveSegmentByTime(time);
+					setActiveEDUByTime(time);
 				}
 			});
 
@@ -44,7 +44,7 @@ export const useTranscriptSync = () => {
 			.subscribe((event) => {
 				const { time } = event.value?.payload || {};
 				if (typeof time === "number") {
-					setActiveSegmentByTime(time);
+					setActiveEDUByTime(time);
 				}
 			});
 
@@ -53,5 +53,5 @@ export const useTranscriptSync = () => {
 			timeUpdateSubscription.unsubscribe();
 			timelineSeekSubscription.unsubscribe();
 		};
-	}, [setActiveSegmentByTime, setActiveSegmentById]);
+	}, [setActiveEDUByTime, setActiveEDUByIndex]);
 };

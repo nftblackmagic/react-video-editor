@@ -1,23 +1,25 @@
 import React from "react";
-import { TranscriptSegment as TranscriptSegmentType } from "../transcript/types";
+import { FullEDU } from "../transcript/types";
 import { dispatch } from "@designcombo/events";
 import { TRANSCRIPT_SELECT } from "../constants/events";
 
-interface TranscriptSegmentProps {
-	segment: TranscriptSegmentType;
+interface TranscriptEDUProps {
+	edu: FullEDU;
 	isActive: boolean;
+	showWords?: boolean;
 }
 
-const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
-	segment,
+const TranscriptEDU: React.FC<TranscriptEDUProps> = ({
+	edu,
 	isActive,
+	showWords = false,
 }) => {
 	const handleClick = () => {
-		// Dispatch select event
+		// Dispatch select event with EDU index
 		dispatch(TRANSCRIPT_SELECT, {
 			payload: {
-				segmentId: segment.id,
-				time: segment.start,
+				eduIndex: edu.edu_index,
+				time: edu.edu_start,
 			},
 		});
 	};
@@ -32,6 +34,9 @@ const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
 			.padStart(2, "0")}`;
 	};
 
+	// Get first word's speaker ID if available
+	const speakerId = edu.words?.[0]?.speaker_id || null;
+
 	return (
 		<div
 			className={`
@@ -43,30 +48,41 @@ const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
 				}
       `}
 			onClick={handleClick}
-			id={`segment-${segment.id}`}
+			id={`edu-${edu.edu_index}`}
 		>
 			<div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
 				<span className="font-mono">
-					{formatTime(segment.start)} - {formatTime(segment.end)}
+					{formatTime(edu.edu_start)} - {formatTime(edu.edu_end)}
 				</span>
-				{segment.speaker_id && (
+				{speakerId && (
 					<>
 						<span className="text-muted-foreground/50">•</span>
-						<span className="font-medium">{segment.speaker_id}</span>
+						<span className="font-medium">{speakerId}</span>
 					</>
 				)}
-				{segment.type && (
+				{edu.words?.length && (
 					<>
 						<span className="text-muted-foreground/50">•</span>
-						<span className="italic text-muted-foreground">
-							[{segment.type}]
+						<span className="text-xs text-muted-foreground">
+							{edu.words.length} words
 						</span>
 					</>
 				)}
 			</div>
-			<div className="text-sm leading-relaxed">{segment.text}</div>
+			<div className="text-sm leading-relaxed">
+				{edu.edu_content}
+				{showWords && edu.words && (
+					<div className="mt-2 pt-2 border-t border-muted text-xs opacity-70">
+						{edu.words.map((word, index) => (
+							<span key={index} className="inline-block mr-1">
+								{word.text}
+							</span>
+						))}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 };
 
-export default TranscriptSegment;
+export default TranscriptEDU;

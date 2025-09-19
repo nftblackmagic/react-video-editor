@@ -7,7 +7,7 @@ import { ADD_AUDIO, ADD_IMAGE, ADD_VIDEO } from "@designcombo/state";
 import { generateId } from "@designcombo/timeline";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { TranscriptSegment } from "../transcript/types";
+import { FullEDU } from "../transcript/types";
 import useProjectStore from "./use-project-store";
 import useTranscriptStore from "./use-transcript-store";
 
@@ -58,19 +58,19 @@ interface IUploadStore {
 		string,
 		"idle" | "processing" | "completed" | "failed"
 	>;
-	transcriptions: Record<string, TranscriptSegment[]>;
+	transcriptions: Record<string, FullEDU[]>;
 	startTranscription: (uploadId: string, url?: string) => Promise<void>;
 	completeTranscription: (
 		uploadId: string,
-		segments: TranscriptSegment[],
+		edus: FullEDU[],
 		autoSplit?: boolean,
 	) => void;
 	setTranscriptionStatus: (
 		uploadId: string,
 		status: "idle" | "processing" | "completed" | "failed",
 	) => void;
-	setTranscription: (uploadId: string, segments: TranscriptSegment[]) => void;
-	getTranscription: (uploadId: string) => TranscriptSegment[] | undefined;
+	setTranscription: (uploadId: string, edus: FullEDU[]) => void;
+	getTranscription: (uploadId: string) => FullEDU[] | undefined;
 }
 
 const useUploadStore = create<IUploadStore>()(
@@ -380,13 +380,11 @@ const useUploadStore = create<IUploadStore>()(
 					const language = "zh"; // TODO: add language selector in UI
 					console.log(`📝 Calling transcribeAction with language: ${language}`);
 
-					const segments = await transcribeAction(url, language);
-					console.log(
-						`✅ Transcription successful: ${segments.length} segments`,
-					);
+					const edus = await transcribeAction(url, language);
+					console.log(`✅ Transcription successful: ${edus.length} EDUs`);
 
 					// Use completeTranscription to handle everything including auto-split
-					get().completeTranscription(uploadId, segments, true);
+					get().completeTranscription(uploadId, edus, true);
 				} catch (error) {
 					console.error("❌ Transcription failed:", error);
 
@@ -417,13 +415,13 @@ const useUploadStore = create<IUploadStore>()(
 
 			completeTranscription: (
 				uploadId: string,
-				segments: TranscriptSegment[],
+				edus: FullEDU[],
 				autoSplit = true,
 			) => {
 				set((state) => ({
 					transcriptions: {
 						...state.transcriptions,
-						[uploadId]: segments,
+						[uploadId]: edus,
 					},
 					transcriptionStatus: {
 						...state.transcriptionStatus,
@@ -432,22 +430,22 @@ const useUploadStore = create<IUploadStore>()(
 				}));
 
 				// Load into TranscriptStore for display
-				if (segments.length > 0) {
-					useTranscriptStore.getState().initSegments(segments);
+				if (edus.length > 0) {
+					useTranscriptStore.getState().initEDUs(edus);
 
 					// Auto-split and add to timeline if enabled
 					// Note: For now, we'll only auto-split if explicitly requested
 					// The original audio is already on the timeline
-					if (autoSplit && segments.length > 1) {
+					if (autoSplit && edus.length > 1) {
 						const upload = get().uploads.find(
 							(u) => u.uploadId === uploadId || u.id === uploadId,
 						);
 
 						if (upload) {
-							// TODO: Consider removing the original audio and replacing with segments
-							// For now, we'll just add the segments alongside the original
+							// TODO: Consider removing the original audio and replacing with EDUs
+							// For now, we'll just add the EDUs alongside the original
 							console.log(
-								`Transcription complete for ${uploadId} with ${segments.length} segments`,
+								`Transcription complete for ${uploadId} with ${edus.length} EDUs`,
 							);
 							console.log(
 								"To apply auto-split, use the manual split button in the UI",
@@ -471,11 +469,11 @@ const useUploadStore = create<IUploadStore>()(
 				}));
 			},
 
-			setTranscription: (uploadId: string, segments: TranscriptSegment[]) => {
+			setTranscription: (uploadId: string, edus: FullEDU[]) => {
 				set((state) => ({
 					transcriptions: {
 						...state.transcriptions,
-						[uploadId]: segments,
+						[uploadId]: edus,
 					},
 				}));
 			},
@@ -488,7 +486,8 @@ const useUploadStore = create<IUploadStore>()(
 			name: "upload-store",
 			partialize: (state) => ({
 				uploads: state.uploads,
-				transcriptions: state.transcriptions,
+				// Don't persist transcriptions - they're too large with word-level data
+				// and can be regenerated from the audio/video files
 			}),
 		},
 	),

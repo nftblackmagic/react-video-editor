@@ -437,7 +437,10 @@ export async function groupEDUs(
 			wordOnlySegments.slice(0, sliceWindow),
 		);
 
-		console.log("Full EDUs:", fullEDUs);
+		console.log(
+			"Full EDUs:",
+			fullEDUs.map((edu) => edu.edu_content),
+		);
 		console.log(
 			"Unprocessed Words:",
 			unprocessedWords.map((word) => word.text),
@@ -521,7 +524,7 @@ export function recoverEDUs(
 			if (eduWords.length > 0) {
 				recoveredEDUs.push({
 					edu_index: 0, // Will be renumbered later
-					edu_content: eduWords.map(w => w.text).join(""),
+					edu_content: eduWords.map((w) => w.text).join(""),
 					edu_start: eduWords[0].start,
 					edu_end: eduWords[eduWords.length - 1].end,
 					words: eduWords,

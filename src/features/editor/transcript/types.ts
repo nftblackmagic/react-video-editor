@@ -1,3 +1,6 @@
+// Re-export FullEDU from LLM types for easier imports
+export type { FullEDU } from "@/lib/llm/types";
+
 export interface TranscriptStyle {
 	bold?: boolean;
 	italic?: boolean;
@@ -9,6 +12,7 @@ export interface TranscriptStyle {
 	textAlign?: "left" | "center" | "right";
 }
 
+// Keep TranscriptSegment as it's used for individual words within EDUs
 export interface TranscriptSegment {
 	id: string;
 	text: string;

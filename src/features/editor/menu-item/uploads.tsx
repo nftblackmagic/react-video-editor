@@ -89,7 +89,9 @@ export const Uploads = () => {
 
 		if (hasTranscription) {
 			// If we have transcription, ask user if they want to add as segments
-			const segments = transcriptions[transcriptionKey];
+			const edus = transcriptions[transcriptionKey];
+			// Extract flat words from EDUs for segment splitter
+			const segments = edus.flatMap((edu) => edu.words || []);
 
 			// For now, add segments when user clicks on audio with transcription
 			import("../utils/segment-splitter").then(({ addSegmentedMedia }) => {

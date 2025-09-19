@@ -83,7 +83,7 @@ const Editor = ({
 	);
 	const { updateProjectTimeline, updateProjectTranscripts } = useProjectStore();
 	const router = useRouter();
-	const { segments, initSegments } = useTranscriptStore();
+	const { fullEDUs, initEDUs, getFlatWords } = useTranscriptStore();
 	const { scene } = useSceneStore();
 	const timelinePanelRef = useRef<ImperativePanelHandle>(null);
 	const sceneRef = useRef<SceneRef>(null);
@@ -218,12 +218,21 @@ const Editor = ({
 		}
 	}, [initialMedia, timeline, trackItemsMap, tracks]);
 
-	// Initialize transcripts
+	// Initialize transcripts - Convert legacy TranscriptSegment[] to EDUs
 	useEffect(() => {
 		if (initialTranscripts && initialTranscripts.length > 0) {
-			initSegments(initialTranscripts);
+			// For backward compatibility, create a single EDU containing all segments
+			// This will be properly re-processed when transcription runs again
+			const legacyEDU = {
+				edu_index: 0,
+				edu_content: initialTranscripts.map((seg) => seg.text).join(""),
+				edu_start: initialTranscripts[0]?.start || 0,
+				edu_end: initialTranscripts[initialTranscripts.length - 1]?.end || 0,
+				words: initialTranscripts,
+			};
+			initEDUs([legacyEDU]);
 		}
-	}, [initialTranscripts, initSegments]);
+	}, [initialTranscripts, initEDUs]);
 
 	// Save timeline state to project store (debounced)
 	useEffect(() => {
@@ -261,14 +270,16 @@ const Editor = ({
 
 	// Save transcripts (debounced)
 	useEffect(() => {
-		if (projectId && segments.length > 0) {
+		if (projectId && fullEDUs.length > 0) {
 			const timeoutId = setTimeout(() => {
-				updateProjectTranscripts(segments);
+				// Convert EDUs back to segments for backward compatibility
+				const flatSegments = getFlatWords();
+				updateProjectTranscripts(flatSegments);
 			}, 1000);
 
 			return () => clearTimeout(timeoutId);
 		}
-	}, [projectId, segments, updateProjectTranscripts]);
+	}, [projectId, fullEDUs, updateProjectTranscripts, getFlatWords]);
 
 	// Note: Legacy combo.sh and scene API support has been removed.
 	// All projects now use the unified projectId-based approach.

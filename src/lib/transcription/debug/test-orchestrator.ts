@@ -1,10 +1,6 @@
 import fs from "node:fs";
 import { TranscriptSegment } from "@/features/editor/transcript/types";
-import { processArticle } from "@/lib/llm/operations/text-operations";
-import {
-	postProcessTranscript,
-	reconstructureEdus,
-} from "@/lib/transcription/orchestrator";
+import { groupEDUs } from "@/lib/llm/operations/text-operations";
 import { config } from "dotenv";
 
 // Load environment variables
@@ -19,52 +15,31 @@ async function main() {
 	const segments = JSON.parse(input) as TranscriptSegment[];
 	console.log("Segments loaded:", segments.length);
 
-	const postProcessedSegments = postProcessTranscript(segments);
-	console.log("Post processed segments:", postProcessedSegments.length);
-	fs.writeFileSync(
-		"src/lib/transcription/debug/output/post-processed-segments.json",
-		JSON.stringify(postProcessedSegments, null, 2),
-	);
-	console.log("Saved post processed segments to post-processed-segments.json");
+	console.log("Processing segments into EDUs using groupEDUs...");
 
-	console.log("Segments loaded:", postProcessedSegments.length);
+	// Use the new groupEDUs function
+	const fullEDUs = await groupEDUs(segments);
 
-	// Get pure article text (same logic as orchestrator.getPureArticle)
-	const article = postProcessedSegments
-		.filter((segment) => segment.type === "word")
-		.map((segment) => segment.text)
-		.join("");
-
-	console.log("Article length:", article.length);
-	console.log("Processing article into EDUs...");
-
-	const edus = await processArticle(article, postProcessedSegments);
-
-	console.log("EDUs count:", edus.edus.length);
+	console.log("EDUs count:", fullEDUs.length);
 	console.log("First few EDUs:");
-	edus.edus.slice(0, 3).forEach((edu, i) => {
-		console.log(`  ${i + 1}: ${edu.content}`);
+	fullEDUs.slice(0, 3).forEach((edu, i) => {
+		console.log(`  ${i + 1}: ${edu.edu_content}`);
 	});
 
 	// save the edus to a json file
 	fs.writeFileSync(
 		"src/lib/transcription/debug/output/edus.json",
-		JSON.stringify(edus, null, 2),
+		JSON.stringify(fullEDUs, null, 2),
 	);
 	console.log("Saved EDUs to edus.json");
 
-	const reconstructuredSegments = reconstructureEdus(
-		edus,
-		postProcessedSegments,
-	);
-
+	// Extract flat words for backward compatibility if needed
+	const flatWords = fullEDUs.flatMap((edu) => edu.words || []);
 	fs.writeFileSync(
-		"src/lib/transcription/debug/output/reconstructured-segments.json",
-		JSON.stringify(reconstructuredSegments, null, 2),
+		"src/lib/transcription/debug/output/flat-words.json",
+		JSON.stringify(flatWords, null, 2),
 	);
-	console.log(
-		"Saved reconstructured segments to reconstructured-segments.json",
-	);
+	console.log("Saved flat words to flat-words.json");
 }
 
 main().catch(console.error);

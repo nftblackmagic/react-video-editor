@@ -1,6 +1,6 @@
 "use server";
 
-import { TranscriptSegment } from "@/features/editor/transcript/types";
+import { FullEDU } from "@/lib/llm/types";
 import {
 	getTranscriptionOrchestrator,
 	type OrchestratorOptions,
@@ -14,12 +14,12 @@ import {
  * Server action to transcribe audio/video using the orchestrator
  * @param url - URL of the media file to transcribe
  * @param language - Language code for transcription
- * @returns Array of transcript segments
+ * @returns Array of Elementary Discourse Units (EDUs) with word-level timestamps
  */
 export async function transcribeAction(
 	url: string,
 	language: string,
-): Promise<TranscriptSegment[]> {
+): Promise<FullEDU[]> {
 	try {
 		// Get the transcription orchestrator
 		const orchestrator = getTranscriptionOrchestrator();
@@ -34,7 +34,7 @@ export async function transcribeAction(
 		// Transcribe the media through orchestrator
 		const response = await orchestrator.transcribe(url, options);
 
-		return response.segments;
+		return response.edus;
 	} catch (error) {
 		// Handle transcription errors
 		if (error instanceof TranscriptionError) {
