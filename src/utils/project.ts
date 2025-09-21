@@ -3,7 +3,7 @@
  * Handles project storage, loading, and data preparation
  */
 
-import { TranscriptSegment } from "@/features/editor/transcript/types";
+import { FullEDU } from "@/features/editor/transcript/types";
 import { nanoid } from "nanoid";
 
 // ============================================
@@ -52,7 +52,7 @@ export interface ProjectData {
 		height?: number;
 		background?: { type: string; value: string };
 	};
-	transcripts?: TranscriptSegment[]; // Add transcript storage
+	fullEDUs?: FullEDU[]; // EDU-structured transcript storage
 	createdAt: string;
 	updatedAt: string;
 }
@@ -99,7 +99,7 @@ class ProjectStorage {
 				width: 1920,
 				height: 1080,
 			},
-			transcripts: [],
+			fullEDUs: [],
 			createdAt: now,
 			updatedAt: now,
 		};
@@ -124,6 +124,7 @@ class ProjectStorage {
 	saveProject(projectData: ProjectData): void {
 		const key = `${PROJECT_PREFIX}${projectData.id}`;
 		projectData.updatedAt = new Date().toISOString();
+
 
 		try {
 			localStorage.setItem(key, JSON.stringify(projectData));
@@ -222,21 +223,6 @@ class ProjectStorage {
 		if (!project) return false;
 
 		project.settings = { ...project.settings, ...settings };
-		this.saveProject(project);
-		return true;
-	}
-
-	/**
-	 * Update project transcripts
-	 */
-	updateProjectTranscripts(
-		projectId: string,
-		transcripts: TranscriptSegment[],
-	): boolean {
-		const project = this.getProject(projectId);
-		if (!project) return false;
-
-		project.transcripts = transcripts;
 		this.saveProject(project);
 		return true;
 	}
@@ -410,7 +396,7 @@ export function prepareProjectDataForEditor(projectData: ProjectData | null) {
 			trackItems: {},
 			transitions: {},
 			compositions: [],
-			transcripts: [],
+			fullEDUs: [],
 			settings: {},
 			uploads: [],
 		};
@@ -421,18 +407,21 @@ export function prepareProjectDataForEditor(projectData: ProjectData | null) {
 	const tracksToUpdate = [...(projectData.timeline?.tracks || [])];
 	const itemsToRemove: string[] = [];
 
-	for (const key in trackItems) {
-		const item = trackItems[key];
-		if (item?.details?.src && typeof item.details.src === "string") {
-			if (item.details.src.startsWith("blob:")) {
-				console.warn(
-					`Filtering out track item with expired blob URL: ${item.name || key}`,
-				);
-				itemsToRemove.push(key);
-				delete trackItems[key];
-			}
-		}
-	}
+
+	// Note: Commenting out blob URL filtering to allow audio/video playback after refresh
+	// Most uploaded files should have permanent URLs from Bytescale
+	// for (const key in trackItems) {
+	// 	const item = trackItems[key];
+	// 	if (item?.details?.src && typeof item.details.src === "string") {
+	// 		if (item.details.src.startsWith("blob:")) {
+	// 			console.warn(
+	// 				`Filtering out track item with expired blob URL: ${item.name || key}`,
+	// 			);
+	// 			itemsToRemove.push(key);
+	// 			delete trackItems[key];
+	// 		}
+	// 	}
+	// }
 
 	// Remove filtered items from tracks
 	if (itemsToRemove.length > 0) {
@@ -457,7 +446,7 @@ export function prepareProjectDataForEditor(projectData: ProjectData | null) {
 		trackItems, // This will be used by loadTimelineGranularly
 		transitions: projectData.timeline?.transitionsMap || {},
 		compositions: projectData.timeline?.compositions || [],
-		transcripts: projectData.transcripts || [],
+		fullEDUs: projectData.fullEDUs || [],
 		settings: projectData.settings || {},
 		uploads: projectData.uploads || [],
 	};

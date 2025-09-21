@@ -1,42 +1,41 @@
 "use client";
-import Timeline from "./timeline";
-import useStore from "./store/use-store";
-import Navbar from "./navbar";
-import useTimelineEvents from "./hooks/use-timeline-events";
-import Scene from "./scene";
-import { TranscriptEditor } from "./transcript";
-import PlayerTimeEmitter from "./components/PlayerTimeEmitter";
-import { SceneRef } from "./scene/scene.types";
-import StateManager, { DESIGN_LOAD } from "@designcombo/state";
-import { useEffect, useRef, useState } from "react";
 import {
 	ResizableHandle,
 	ResizablePanel,
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { useIsLargeScreen } from "@/hooks/use-media-query";
+import { useSceneStore } from "@/store/use-scene-store";
+import { ProjectMedia } from "@/utils/project";
+import { dispatch } from "@designcombo/events";
+import StateManager, { DESIGN_LOAD } from "@designcombo/state";
+import { ADD_AUDIO, ADD_VIDEO } from "@designcombo/state";
+import { generateId } from "@designcombo/timeline";
+import { ITrackItem } from "@designcombo/types";
+import { useEffect, useRef, useState } from "react";
 import { ImperativePanelHandle } from "react-resizable-panels";
-import { getCompactFontData, loadFonts } from "./utils/fonts";
+import PlayerTimeEmitter from "./components/PlayerTimeEmitter";
 import { SECONDARY_FONT, SECONDARY_FONT_URL } from "./constants/constants";
 import { ControlItem } from "./control-item";
-import CropModal from "./crop-modal/crop-modal";
-import useDataState from "./store/use-data-state";
-import { FONTS } from "./data/fonts";
-import FloatingControl from "./control-item/floating-controls/floating-control";
-import { useSceneStore } from "@/store/use-scene-store";
-import { dispatch } from "@designcombo/events";
-import MenuListHorizontal from "./menu-list-horizontal";
-import { useIsLargeScreen } from "@/hooks/use-media-query";
-import { ITrackItem } from "@designcombo/types";
-import useLayoutStore from "./store/use-layout-store";
 import ControlItemHorizontal from "./control-item-horizontal";
-import { ADD_VIDEO, ADD_AUDIO } from "@designcombo/state";
-import { generateId } from "@designcombo/timeline";
+import FloatingControl from "./control-item/floating-controls/floating-control";
+import CropModal from "./crop-modal/crop-modal";
+import { FONTS } from "./data/fonts";
+import useTimelineEvents from "./hooks/use-timeline-events";
+import MenuListHorizontal from "./menu-list-horizontal";
+import Navbar from "./navbar";
+import Scene from "./scene";
+import { SceneRef } from "./scene/scene.types";
+import useDataState from "./store/use-data-state";
+import useLayoutStore from "./store/use-layout-store";
 import useProjectStore from "./store/use-project-store";
+import useStore from "./store/use-store";
 import useTranscriptStore from "./store/use-transcript-store";
-import { useRouter } from "next/navigation";
+import Timeline from "./timeline";
+import { TranscriptEditor } from "./transcript";
+import { FullEDU } from "./transcript/types";
+import { getCompactFontData, loadFonts } from "./utils/fonts";
 import { loadTimelineGranularly } from "./utils/granular-dispatch";
-import { TranscriptSegment } from "./transcript/types";
-import { ProjectMedia } from "@/utils/project";
 
 const stateManager = new StateManager({
 	size: {
@@ -61,7 +60,7 @@ interface EditorProps {
 	initialTrackItems?: Record<string, any>;
 	initialTransitions?: Record<string, any>;
 	initialCompositions?: any[];
-	initialTranscripts?: TranscriptSegment[];
+	initialFullEDUs?: FullEDU[];
 	initialSettings?: Record<string, any>;
 	initialUploads?: any[];
 }
@@ -74,16 +73,15 @@ const Editor = ({
 	initialTrackItems = {},
 	initialTransitions = {},
 	initialCompositions = [],
-	initialTranscripts = [],
+	initialFullEDUs = [],
 	initialSettings = {},
 	initialUploads = [],
 }: EditorProps) => {
 	const [projectName, setProjectName] = useState<string>(
 		projectData?.name || "Untitled video",
 	);
-	const { updateProjectTimeline, updateProjectTranscripts } = useProjectStore();
-	const router = useRouter();
-	const { fullEDUs, initEDUs, getFlatWords } = useTranscriptStore();
+	const { updateProjectTimeline, updateProjectFullEDUs } = useProjectStore();
+	const { fullEDUs, initEDUs } = useTranscriptStore();
 	const { scene } = useSceneStore();
 	const timelinePanelRef = useRef<ImperativePanelHandle>(null);
 	const sceneRef = useRef<SceneRef>(null);
@@ -218,21 +216,12 @@ const Editor = ({
 		}
 	}, [initialMedia, timeline, trackItemsMap, tracks]);
 
-	// Initialize transcripts - Convert legacy TranscriptSegment[] to EDUs
+	// Initialize transcripts from fullEDUs
 	useEffect(() => {
-		if (initialTranscripts && initialTranscripts.length > 0) {
-			// For backward compatibility, create a single EDU containing all segments
-			// This will be properly re-processed when transcription runs again
-			const legacyEDU = {
-				edu_index: 0,
-				edu_content: initialTranscripts.map((seg) => seg.text).join(""),
-				edu_start: initialTranscripts[0]?.start || 0,
-				edu_end: initialTranscripts[initialTranscripts.length - 1]?.end || 0,
-				words: initialTranscripts,
-			};
-			initEDUs([legacyEDU]);
+		if (initialFullEDUs && initialFullEDUs.length > 0) {
+			initEDUs(initialFullEDUs);
 		}
-	}, [initialTranscripts, initEDUs]);
+	}, [initialFullEDUs, initEDUs]);
 
 	// Save timeline state to project store (debounced)
 	useEffect(() => {
@@ -268,18 +257,17 @@ const Editor = ({
 		updateProjectTimeline,
 	]);
 
-	// Save transcripts (debounced)
+	// Save transcripts (debounced) - Now saves full EDU structure
 	useEffect(() => {
 		if (projectId && fullEDUs.length > 0) {
 			const timeoutId = setTimeout(() => {
-				// Convert EDUs back to segments for backward compatibility
-				const flatSegments = getFlatWords();
-				updateProjectTranscripts(flatSegments);
+				// Save the full EDU structure to preserve grouping
+				updateProjectFullEDUs(fullEDUs);
 			}, 1000);
 
 			return () => clearTimeout(timeoutId);
 		}
-	}, [projectId, fullEDUs, updateProjectTranscripts, getFlatWords]);
+	}, [projectId, fullEDUs, updateProjectFullEDUs]);
 
 	// Note: Legacy combo.sh and scene API support has been removed.
 	// All projects now use the unified projectId-based approach.

@@ -40,6 +40,19 @@ export const BaseSequence = ({
 		height: item.details.height,
 	};
 
+	// For audio items, we don't need AbsoluteFill wrapper
+	if (item.type === "audio") {
+		return (
+			<Sequence
+				key={item.id}
+				from={from}
+				durationInFrames={durationInFrames || 1}
+			>
+				{children}
+			</Sequence>
+		);
+	}
+
 	return (
 		<Sequence
 			key={item.id}

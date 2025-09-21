@@ -62,7 +62,7 @@ const useTranscriptStore = create<TranscriptStore>((set, get) => ({
 			}
 			set({ _flatWordsCache: flatWords });
 		}
-		return get()._flatWordsCache!;
+		return get()._flatWordsCache || [];
 	},
 
 	getWordIndexMap: () => {
@@ -81,7 +81,7 @@ const useTranscriptStore = create<TranscriptStore>((set, get) => ({
 
 			set({ _wordIndexMapCache: map });
 		}
-		return get()._wordIndexMapCache!;
+		return get()._wordIndexMapCache || new Map();
 	},
 
 	// Actions

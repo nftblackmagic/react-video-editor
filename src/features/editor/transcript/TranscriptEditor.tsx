@@ -3,6 +3,7 @@ import TranscriptEDU from "./TranscriptEDU";
 import useTranscriptStore from "../store/use-transcript-store";
 import useUploadStore from "../store/use-upload-store";
 import { useTranscriptSync } from "../hooks/use-transcript-sync";
+import GenerateSubtitleButton from "./components/generate-subtitle-button";
 
 const TranscriptEditor: React.FC = () => {
 	const { fullEDUs, activeEDUIndex, initEDUs } = useTranscriptStore();
@@ -34,7 +35,7 @@ const TranscriptEditor: React.FC = () => {
 		// If we have transcriptions from uploads, use the most recent one
 		if (completedTranscriptions.length > 0 && fullEDUs.length === 0) {
 			// Use the first completed transcription (could be enhanced to allow selection)
-			const [uploadId, transcriptEDUs] = completedTranscriptions[0];
+			const [, transcriptEDUs] = completedTranscriptions[0];
 			initEDUs(transcriptEDUs);
 		}
 	}, [transcriptions, transcriptionStatus, fullEDUs.length, initEDUs]);
@@ -42,13 +43,16 @@ const TranscriptEditor: React.FC = () => {
 	return (
 		<div className="h-full flex flex-col bg-background border-l border-border">
 			{/* Header */}
-			<div className="px-4 py-3 border-b border-border">
-				<h3 className="font-medium text-sm">Transcript</h3>
-				{fullEDUs.length > 0 && (
-					<p className="text-xs text-muted-foreground mt-0.5">
-						{fullEDUs.length} EDUs
-					</p>
-				)}
+			<div className="px-4 py-3 border-b border-border space-y-2">
+				<div>
+					<h3 className="font-medium text-sm">Transcript</h3>
+					{fullEDUs.length > 0 && (
+						<p className="text-xs text-muted-foreground mt-0.5">
+							{fullEDUs.length} EDUs
+						</p>
+					)}
+				</div>
+				{fullEDUs.length > 0 && <GenerateSubtitleButton />}
 			</div>
 
 			{/* Transcript List */}

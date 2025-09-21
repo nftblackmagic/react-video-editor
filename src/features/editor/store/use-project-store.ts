@@ -7,7 +7,7 @@ import {
 	type ProjectListItem,
 	type ProjectUpload,
 } from "@/utils/project";
-import { TranscriptSegment } from "../transcript/types";
+import { FullEDU } from "../transcript/types";
 import useUploadStore from "./use-upload-store";
 
 interface ProjectStore {
@@ -26,7 +26,7 @@ interface ProjectStore {
 	updateProjectName: (name: string) => void;
 	updateProjectTimeline: (timeline: Partial<ProjectData["timeline"]>) => void;
 	updateProjectSettings: (settings: Partial<ProjectData["settings"]>) => void;
-	updateProjectTranscripts: (transcripts: TranscriptSegment[]) => void;
+	updateProjectFullEDUs: (fullEDUs: FullEDU[]) => void;
 	updateInitialMediaUrl: (url: string) => void;
 	deleteProject: (projectId: string) => void;
 	refreshProjectList: () => void;
@@ -127,14 +127,14 @@ const useProjectStore = create<ProjectStore>()(
 				set({ projectData: updated });
 			},
 
-			// Update project transcripts
-			updateProjectTranscripts: (transcripts: TranscriptSegment[]) => {
+			// Update project fullEDUs
+			updateProjectFullEDUs: (fullEDUs: FullEDU[]) => {
 				const { currentProjectId, projectData } = get();
 				if (!currentProjectId || !projectData) return;
 
 				const updated = {
 					...projectData,
-					transcripts,
+					fullEDUs,
 				};
 				projectStorage.saveProject(updated);
 				set({ projectData: updated });

@@ -1,5 +1,5 @@
 import { SequenceItem } from "./sequence-item";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { dispatch, filter, subject } from "@designcombo/events";
 import {
 	EDIT_OBJECT,
@@ -33,6 +33,7 @@ const Composition = () => {
 	const mediaItems = Object.values(trackItemsMap).filter((item) => {
 		return item.type === "video" || item.type === "audio";
 	});
+
 
 	const handleTextChange = (id: string, _: string) => {
 		const elRef = document.querySelector(`.id-${id}`) as HTMLDivElement;
@@ -155,7 +156,16 @@ const Composition = () => {
 			{groupedItems.map((group, index) => {
 				if (group.length === 1) {
 					const item = trackItemsMap[group[0].id];
-					return SequenceItem[item.type](item, {
+					if (!item) {
+						return null;
+					}
+
+					// Check if handler exists for this item type
+					if (!SequenceItem[item.type]) {
+						return null;
+					}
+
+					const element = SequenceItem[item.type](item, {
 						fps,
 						handleTextChange,
 						onTextBlur,
@@ -164,6 +174,10 @@ const Composition = () => {
 						size,
 						isTransition: false,
 					});
+					// Return null for subtitle items (no preview rendering)
+					if (!element) return null;
+					// Add key to the returned element
+					return <React.Fragment key={item.id}>{element}</React.Fragment>;
 				}
 				return null;
 			})}

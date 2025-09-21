@@ -279,9 +279,10 @@ const useUploadStore = create<IUploadStore>()(
 											});
 										} else if (contentType.startsWith("audio/")) {
 											// Add audio to timeline immediately
+											const audioId = generateId();
 											dispatch(ADD_AUDIO, {
 												payload: {
-													id: generateId(),
+													id: audioId,
 													type: "audio",
 													details: {
 														src: mediaUrl,

@@ -5,10 +5,12 @@ import { SequenceItemOptions } from "./base-sequence";
 
 export const SequenceItem: Record<
 	string,
-	(item: ITrackItem, options: SequenceItemOptions) => React.JSX.Element
+	(item: ITrackItem, options: SequenceItemOptions) => React.JSX.Element | null
 > = {
 	text: (item, options) => Text({ item: item as IText, options }),
 	video: (item, options) => Video({ item: item as IVideo, options }),
 	audio: (item, options) => Audio({ item: item as IAudio, options }),
 	image: (item, options) => Image({ item: item as IImage, options }),
+	// Subtitles are timeline-only, no preview rendering
+	subtitle: (item, options) => null,
 };

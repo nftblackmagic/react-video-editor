@@ -59,7 +59,7 @@ export async function prepareProjectDataForEditor(
 			trackItemsMap: {},
 			transitionsMap: {},
 			compositions: [],
-			transcripts: [],
+			fullEDUs: [],
 			settings: {},
 		};
 	}
@@ -69,18 +69,20 @@ export async function prepareProjectDataForEditor(
 	const tracksToUpdate = [...(projectData.timeline?.tracks || [])];
 	const itemsToRemove: string[] = [];
 
-	for (const key in trackItemsMap) {
-		const item = trackItemsMap[key];
-		if (item?.details?.src && typeof item.details.src === "string") {
-			if (item.details.src.startsWith("blob:")) {
-				console.warn(
-					`Filtering out track item with expired blob URL: ${item.name || key}`,
-				);
-				itemsToRemove.push(key);
-				delete trackItemsMap[key];
-			}
-		}
-	}
+	// Note: Commenting out blob URL filtering to allow audio/video playback after refresh
+	// Most uploaded files should have permanent URLs from Bytescale
+	// for (const key in trackItemsMap) {
+	// 	const item = trackItemsMap[key];
+	// 	if (item?.details?.src && typeof item.details.src === "string") {
+	// 		if (item.details.src.startsWith("blob:")) {
+	// 			console.warn(
+	// 				`Filtering out track item with expired blob URL: ${item.name || key}`,
+	// 			);
+	// 			itemsToRemove.push(key);
+	// 			delete trackItemsMap[key];
+	// 		}
+	// 	}
+	// }
 
 	// Remove filtered items from tracks
 	if (itemsToRemove.length > 0) {
@@ -105,7 +107,7 @@ export async function prepareProjectDataForEditor(
 		trackItemsMap,
 		transitionsMap: projectData.timeline?.transitionsMap || {},
 		compositions: projectData.timeline?.compositions || [],
-		transcripts: projectData.transcripts || [],
+		fullEDUs: projectData.fullEDUs || [],
 		settings: projectData.settings || {},
 		uploads: projectData.uploads || [],
 	};

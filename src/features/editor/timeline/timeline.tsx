@@ -13,7 +13,7 @@ import {
 import useStore from "../store/use-store";
 import Playhead from "./playhead";
 import { useCurrentPlayerFrame } from "../hooks/use-current-frame";
-import { Audio, Image, Text, Video } from "./items";
+import { Audio, Image, Text, Video, Subtitle } from "./items";
 import StateManager, { REPLACE_MEDIA } from "@designcombo/state";
 import {
 	TIMELINE_OFFSET_CANVAS_LEFT,
@@ -28,6 +28,7 @@ CanvasTimeline.registerItems({
 	Image,
 	Audio,
 	Video,
+	Subtitle,
 });
 
 const EMPTY_SIZE = { width: 0, height: 0 };
@@ -133,6 +134,7 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 			},
 			sizesMap: {
 				text: 32,
+				subtitle: 32,
 				audio: 36,
 				customTrack: 40,
 				customTrack2: 40,
@@ -143,6 +145,7 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 			},
 			itemTypes: [
 				"text",
+				"subtitle",
 				"image",
 				"audio",
 				"video",
@@ -159,6 +162,7 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 			],
 			acceptsMap: {
 				text: ["text"],
+				subtitle: ["subtitle"],
 				image: ["image", "video"],
 				video: ["video", "image"],
 				audio: ["audio"],

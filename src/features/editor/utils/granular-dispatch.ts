@@ -58,16 +58,18 @@ export function dispatchLoadTrackItems(
 		const filtered = { ...trackItems };
 		const itemsToRemove: string[] = [];
 
-		for (const key in filtered) {
-			const item = filtered[key];
-			if (item?.details?.src && typeof item.details.src === "string") {
-				if (item.details.src.startsWith("blob:")) {
-					console.warn(`Filtering out item with blob URL: ${key}`);
-					itemsToRemove.push(key);
-					delete filtered[key];
-				}
-			}
-		}
+		// Note: Commenting out blob URL filtering to allow audio/video playback after refresh
+		// Most uploaded files should have permanent URLs from Bytescale
+		// for (const key in filtered) {
+		// 	const item = filtered[key];
+		// 	if (item?.details?.src && typeof item.details.src === "string") {
+		// 		if (item.details.src.startsWith("blob:")) {
+		// 			console.warn(`Filtering out item with blob URL: ${key}`);
+		// 			itemsToRemove.push(key);
+		// 			delete filtered[key];
+		// 		}
+		// 	}
+		// }
 
 		if (Object.keys(filtered).length === 0) {
 			console.warn("No valid track items to load after filtering");
@@ -225,17 +227,6 @@ export function loadTimelineGranularly(timelineData: {
 		const filteredTrackItems = { ...(timelineData.trackItems || {}) };
 		const filteredTracks = [...(timelineData.tracks || [])];
 		const itemsToRemove: string[] = [];
-
-		for (const key in filteredTrackItems) {
-			const item = filteredTrackItems[key];
-			if (item?.details?.src && typeof item.details.src === "string") {
-				if (item.details.src.startsWith("blob:")) {
-					console.warn(`Filtering out item with blob URL: ${key}`);
-					itemsToRemove.push(key);
-					delete filteredTrackItems[key];
-				}
-			}
-		}
 
 		// Remove filtered items from tracks
 		if (itemsToRemove.length > 0) {

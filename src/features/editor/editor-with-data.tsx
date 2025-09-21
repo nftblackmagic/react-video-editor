@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Editor from "./editor";
 import {
 	loadProjectFromClient,
 	prepareProjectDataForEditor,
 } from "@/utils/project";
+import { useEffect, useState } from "react";
+import Editor from "./editor";
 
 interface EditorWithDataProps {
 	projectId: string;
@@ -106,7 +106,7 @@ export default function EditorWithData({
 			initialTrackItems={projectData?.trackItems || {}}
 			initialTransitions={projectData?.transitions || {}}
 			initialCompositions={projectData?.compositions || []}
-			initialTranscripts={projectData?.transcripts || []}
+			initialFullEDUs={projectData?.fullEDUs || []}
 			initialSettings={projectData?.settings || {}}
 			initialUploads={projectData?.uploads || []}
 		/>
