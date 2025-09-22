@@ -125,7 +125,6 @@ class ProjectStorage {
 		const key = `${PROJECT_PREFIX}${projectData.id}`;
 		projectData.updatedAt = new Date().toISOString();
 
-
 		try {
 			localStorage.setItem(key, JSON.stringify(projectData));
 			// Update index
@@ -406,7 +405,6 @@ export function prepareProjectDataForEditor(projectData: ProjectData | null) {
 	const trackItems = { ...(projectData.timeline?.trackItemsMap || {}) };
 	const tracksToUpdate = [...(projectData.timeline?.tracks || [])];
 	const itemsToRemove: string[] = [];
-
 
 	// Note: Commenting out blob URL filtering to allow audio/video playback after refresh
 	// Most uploaded files should have permanent URLs from Bytescale

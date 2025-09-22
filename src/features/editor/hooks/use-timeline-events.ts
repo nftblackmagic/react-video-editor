@@ -42,10 +42,14 @@ const useTimelineEvents = () => {
 					playerRef.current.seekTo((time / 1000) * fps);
 				}
 			} else if (obj.key === PLAYER_PLAY) {
-				playerRef?.current?.play();
+				// Audio unlock already handled by direct call in header
+				if (playerRef?.current && !playerRef.current.isPlaying()) {
+					playerRef.current.play();
+				}
 			} else if (obj.key === PLAYER_PAUSE) {
 				playerRef?.current?.pause();
 			} else if (obj.key === PLAYER_TOGGLE_PLAY) {
+				// Should be handled directly in UI for audio unlock
 				if (playerRef?.current?.isPlaying()) {
 					playerRef.current.pause();
 				} else {

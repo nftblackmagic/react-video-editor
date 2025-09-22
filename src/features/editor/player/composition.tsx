@@ -1,5 +1,5 @@
 import { SequenceItem } from "./sequence-item";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { dispatch, filter, subject } from "@designcombo/events";
 import {
 	EDIT_OBJECT,
@@ -25,15 +25,25 @@ const Composition = () => {
 	} = useStore();
 	const frame = useCurrentFrame();
 
-	const groupedItems = groupTrackItems({
-		trackItemIds,
-		transitionsMap,
-		trackItemsMap: trackItemsMap,
-	});
-	const mediaItems = Object.values(trackItemsMap).filter((item) => {
-		return item.type === "video" || item.type === "audio";
-	});
+	// Memoize grouped items to prevent recalculation on every frame
+	const groupedItems = useMemo(
+		() =>
+			groupTrackItems({
+				trackItemIds,
+				transitionsMap,
+				trackItemsMap: trackItemsMap,
+			}),
+		[trackItemIds, transitionsMap, trackItemsMap],
+	);
 
+	// Memoize media items
+	const mediaItems = useMemo(
+		() =>
+			Object.values(trackItemsMap).filter((item) => {
+				return item.type === "video" || item.type === "audio";
+			}),
+		[trackItemsMap],
+	);
 
 	const handleTextChange = (id: string, _: string) => {
 		const elRef = document.querySelector(`.id-${id}`) as HTMLDivElement;

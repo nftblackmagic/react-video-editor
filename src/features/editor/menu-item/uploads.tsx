@@ -83,6 +83,22 @@ export const Uploads = () => {
 		// Audio is already on timeline from upload, this is for manual re-add
 		const srcAudio = audio.metadata?.uploadedUrl || audio.url;
 
+		console.log("🎵 handleAddAudio called:", {
+			audioId: audio.id,
+			uploadId: audio.uploadId,
+			url: audio.url,
+			urlType: audio.url?.startsWith("blob:") ? "BLOB URL" : "Regular URL",
+			uploadedUrl: audio.metadata?.uploadedUrl,
+			uploadedUrlType: audio.metadata?.uploadedUrl?.startsWith("blob:")
+				? "BLOB URL"
+				: "Regular URL",
+			bytescaleUrl: audio.metadata?.bytescaleUrl,
+			selectedSrc: srcAudio,
+			selectedSrcType: srcAudio?.startsWith("blob:")
+				? "BLOB URL (WILL EXPIRE!)"
+				: "Regular URL",
+		});
+
 		// Check if this audio has a transcription (use uploadId or id)
 		const transcriptionKey = audio.uploadId || audio.id;
 		const hasTranscription = transcriptions[transcriptionKey]?.length > 0;

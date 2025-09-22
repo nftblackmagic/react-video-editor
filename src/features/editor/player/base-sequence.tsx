@@ -44,9 +44,11 @@ export const BaseSequence = ({
 	if (item.type === "audio") {
 		return (
 			<Sequence
-				key={item.id}
+				key={`audio-${item.id}`}
 				from={from}
 				durationInFrames={durationInFrames || 1}
+				// Ensure audio doesn't get recreated unnecessarily
+				layout="none"
 			>
 				{children}
 			</Sequence>

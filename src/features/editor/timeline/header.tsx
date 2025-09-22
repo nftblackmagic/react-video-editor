@@ -110,28 +110,46 @@ const Header = () => {
 		});
 	};
 
-	const handlePlay = () => {
-		dispatch(PLAYER_PLAY);
+	const handlePlay = (event: React.MouseEvent<HTMLButtonElement>) => {
+		console.log("🎬 handlePlay - calling player.play() directly", {
+			hasPlayerRef: !!playerRef?.current,
+			eventType: event?.type,
+			isTrusted: event?.isTrusted,
+		});
+
+		// CRITICAL: Call player directly while still in user gesture context
+		if (playerRef?.current) {
+			playerRef.current.play(event);
+		}
+
+		// Then dispatch for state management (without event)
+		dispatch(PLAYER_PLAY, {
+			payload: {},
+		});
 	};
 
 	const handlePause = () => {
+		console.log("⏸️ handlePause - calling player.pause() directly");
+
+		// Call player directly
+		if (playerRef?.current) {
+			playerRef.current.pause();
+		}
+
+		// Then dispatch for state management
 		dispatch(PLAYER_PAUSE);
 	};
 
 	useEffect(() => {
-		playerRef?.current?.addEventListener("play", () => {
-			setPlaying(true);
-		});
-		playerRef?.current?.addEventListener("pause", () => {
-			setPlaying(false);
-		});
+		const handlePlayEvent = () => setPlaying(true);
+		const handlePauseEvent = () => setPlaying(false);
+
+		playerRef?.current?.addEventListener("play", handlePlayEvent);
+		playerRef?.current?.addEventListener("pause", handlePauseEvent);
+
 		return () => {
-			playerRef?.current?.removeEventListener("play", () => {
-				setPlaying(true);
-			});
-			playerRef?.current?.removeEventListener("pause", () => {
-				setPlaying(false);
-			});
+			playerRef?.current?.removeEventListener("play", handlePlayEvent);
+			playerRef?.current?.removeEventListener("pause", handlePauseEvent);
 		};
 	}, [playerRef]);
 
@@ -209,11 +227,11 @@ const Header = () => {
 								<IconPlayerSkipBack size={14} />
 							</Button>
 							<Button
-								onClick={() => {
+								onClickCapture={(e) => {
 									if (playing) {
 										return handlePause();
 									}
-									handlePlay();
+									handlePlay(e);
 								}}
 								variant={"ghost"}
 								size={"icon"}

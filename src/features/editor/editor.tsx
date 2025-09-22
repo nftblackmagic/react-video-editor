@@ -358,6 +358,10 @@ const Editor = ({
 	return (
 		<div className="flex h-screen w-screen flex-col">
 			<PlayerTimeEmitter />
+			{process.env.NODE_ENV === "development" && (
+				<>
+				</>
+			)}
 			<Navbar
 				projectName={projectName}
 				user={null}

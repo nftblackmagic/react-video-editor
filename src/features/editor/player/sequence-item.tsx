@@ -7,10 +7,10 @@ export const SequenceItem: Record<
 	string,
 	(item: ITrackItem, options: SequenceItemOptions) => React.JSX.Element | null
 > = {
-	text: (item, options) => Text({ item: item as IText, options }),
-	video: (item, options) => Video({ item: item as IVideo, options }),
-	audio: (item, options) => Audio({ item: item as IAudio, options }),
-	image: (item, options) => Image({ item: item as IImage, options }),
+	text: (item, options) => <Text item={item as IText} options={options} />,
+	video: (item, options) => <Video item={item as IVideo} options={options} />,
+	audio: (item, options) => <Audio item={item as IAudio} options={options} />,
+	image: (item, options) => <Image item={item as IImage} options={options} />,
 	// Subtitles are timeline-only, no preview rendering
 	subtitle: (item, options) => null,
 };
