@@ -15,10 +15,10 @@ export const calculateThumbnailSegmentLayout = (
 	thumbnailHeight: number,
 ): FilmstripBacklogOptions => {
 	// Calculate the maximum number of thumbnails based on the thumbnail width
-	let maxThumbnails = Math.floor(1200 / thumbnailHeight);
+	const maxThumbnails = Math.floor(1200 / thumbnailHeight);
 
 	// Calculate the total width required for the thumbnails
-	let segmentSize = maxThumbnails * thumbnailHeight;
+	const segmentSize = maxThumbnails * thumbnailHeight;
 
 	return {
 		thumbnailsPerSegment: maxThumbnails,
@@ -54,7 +54,7 @@ export function matchTimestampsToNearestThumbnails(
 ): Result[] {
 	const results: Result[] = [];
 
-	timestamps.forEach((ts) => {
+	for (const ts of timestamps) {
 		// Find the closest thumbnail
 		const closestThumbnail = thumbnailsList.reduce((prev, curr) => {
 			return Math.abs(curr.ts - ts) < Math.abs(prev.ts - ts) ? curr : prev;
@@ -65,7 +65,7 @@ export function matchTimestampsToNearestThumbnails(
 			ts,
 			url: closestThumbnail.url,
 		});
-	});
+	}
 
 	return results;
 }
