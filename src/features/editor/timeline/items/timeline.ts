@@ -1,12 +1,12 @@
 import TimelineBase from "@designcombo/timeline";
-import Video from "./video";
-import { throttle } from "lodash";
-import Audio from "./audio";
 import { TimelineOptions } from "@designcombo/timeline";
 import { ITimelineScaleState } from "@designcombo/types";
+import { throttle } from "lodash";
+import Audio from "./audio";
+import Video from "./video";
 
 class Timeline extends TimelineBase {
-	public isShiftKey: boolean = false;
+	public isShiftKey = false;
 	constructor(
 		canvasEl: HTMLCanvasElement,
 		options: Partial<TimelineOptions> & {

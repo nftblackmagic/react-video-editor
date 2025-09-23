@@ -2,8 +2,25 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
-const connectionString =
-	process.env.DATABASE_URL || "postgresql://localhost:5432/video_editor";
-const client = postgres(connectionString);
+// Only initialize database if POSTGRES_URL is set
+let dbConnection: ReturnType<typeof drizzle> | null = null;
 
-export const db = drizzle(client, { schema });
+if (process.env.POSTGRES_URL) {
+	try {
+		const connectionString = process.env.POSTGRES_URL;
+		const client = postgres(connectionString);
+		dbConnection = drizzle(client, { schema });
+	} catch (error) {
+		console.error("Failed to initialize database connection:", error);
+	}
+}
+
+// Throw error if db is not initialized when used
+export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+	get(_, prop) {
+		if (!dbConnection) {
+			throw new Error("Database connection not initialized. Please check your POSTGRES_URL environment variable.");
+		}
+		return dbConnection[prop as keyof typeof dbConnection];
+	},
+});

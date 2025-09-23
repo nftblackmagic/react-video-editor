@@ -134,7 +134,6 @@ Required for full functionality:
 
 ```env
 # Database connection
-DATABASE_URL="postgresql://localhost:5432/video_editor"
 
 # Stock media access
 PEXELS_API_KEY=""

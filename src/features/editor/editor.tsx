@@ -80,7 +80,8 @@ const Editor = ({
 	const [projectName, setProjectName] = useState<string>(
 		projectData?.name || "Untitled video",
 	);
-	const { updateProjectTimeline, updateProjectFullEDUs } = useProjectStore();
+	const { updateProjectTimeline, updateProjectFullEDUs, setUserId } =
+		useProjectStore();
 	const { fullEDUs, initEDUs } = useTranscriptStore();
 	const { scene } = useSceneStore();
 	const timelinePanelRef = useRef<ImperativePanelHandle>(null);
@@ -106,6 +107,19 @@ const Editor = ({
 	const isLargeScreen = useIsLargeScreen();
 
 	useTimelineEvents();
+
+	// TODO: Replace with real authentication system
+	// Demo user UUID - replace with real auth when ready
+	const DEMO_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
+
+	// TODO: Get real user ID from authentication context/provider
+	// Set demo userId (in production, this would come from auth)
+	useEffect(() => {
+		// TODO: Replace with actual user ID from auth
+		// Example: const userId = useAuth().user?.id;
+		// Use a demo user UUID for now
+		setUserId(DEMO_USER_ID);
+	}, [setUserId]);
 
 	// Initialize timeline with granular loading and verification
 	useEffect(() => {
@@ -358,10 +372,6 @@ const Editor = ({
 	return (
 		<div className="flex h-screen w-screen flex-col">
 			<PlayerTimeEmitter />
-			{process.env.NODE_ENV === "development" && (
-				<>
-				</>
-			)}
 			<Navbar
 				projectName={projectName}
 				user={null}

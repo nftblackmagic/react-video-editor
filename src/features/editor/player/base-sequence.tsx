@@ -69,7 +69,7 @@ export const BaseSequence = ({
 				data-track-item="transition-element"
 				className={`designcombo-scene-item id-${item.id} designcombo-scene-item-type-${item.type}`}
 				style={calculateContainerStyles(details, crop, {
-					pointerEvents: item.type === "audio" ? "none" : "auto",
+					pointerEvents: (item.type as string) === "audio" ? "none" : "auto",
 				})}
 			>
 				{children}

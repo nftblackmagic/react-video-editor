@@ -1,14 +1,13 @@
 import {
-	pgTable,
-	varchar,
-	text,
-	uuid,
-	integer,
-	timestamp,
-	json,
-	index,
-	real,
 	boolean,
+	integer,
+	jsonb,
+	pgTable,
+	real,
+	text,
+	timestamp,
+	uuid,
+	varchar,
 } from "drizzle-orm/pg-core";
 
 // 用户表
@@ -43,12 +42,12 @@ export const projects = pgTable("Project", {
 	height: integer("height").notNull().default(1080),
 
 	// 复杂数据以JSON存储
-	tracks: json("tracks").$type<any[]>().default([]), // 轨道数据
-	trackItems: json("track_items").$type<Record<string, any>>().default({}), // 轨道项目
-	transitions: json("transitions").$type<Record<string, any>>().default({}), // 过渡效果
-	compositions: json("compositions").$type<any[]>().default([]), // 合成数据
-	background: json("background").$type<{ type: string; value: string }>(),
-	settings: json("settings"), // 其他项目设置
+	tracks: jsonb("tracks").$type<any[]>(), // 轨道数据
+	trackItems: jsonb("track_items").$type<Record<string, any>>(), // 轨道项目
+	transitions: jsonb("transitions").$type<Record<string, any>>(), // 过渡效果
+	compositions: jsonb("compositions").$type<any[]>(), // 合成数据
+	background: jsonb("background").$type<{ type: string; value: string }>(),
+	settings: jsonb("settings"), // 其他项目设置
 
 	status: varchar("status", { length: 32 }).notNull().default("draft"), // draft, published, archived
 	isPublic: boolean("is_public").notNull().default(false),
@@ -56,14 +55,6 @@ export const projects = pgTable("Project", {
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
-// Indexes for projects
-export const projectsUserIdIdx = index("projects_user_id_idx").on(
-	projects.userId,
-);
-export const projectsStatusIdx = index("projects_status_idx").on(
-	projects.status,
-);
 
 // 媒体上传表
 export const uploads = pgTable("Upload", {
@@ -93,7 +84,7 @@ export const uploads = pgTable("Upload", {
 	uploadServiceId: varchar("upload_service_id", { length: 255 }), // 上传服务返回的ID
 
 	// 元数据
-	metadata: json("metadata"), // 额外的元数据
+	metadata: jsonb("metadata"), // 额外的元数据
 
 	status: varchar("status", { length: 32 }).notNull().default("processing"), // processing, ready, failed
 	errorMessage: text("error_message"),
@@ -101,16 +92,6 @@ export const uploads = pgTable("Upload", {
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
-// Indexes for uploads
-export const uploadsUserIdIdx = index("uploads_user_id_idx").on(uploads.userId);
-export const uploadsProjectIdIdx = index("uploads_project_id_idx").on(
-	uploads.projectId,
-);
-export const uploadsStatusIdx = index("uploads_status_idx").on(uploads.status);
-export const uploadsFileTypeIdx = index("uploads_file_type_idx").on(
-	uploads.fileType,
-);
 
 // 转录表 - 音视频的字幕/转录
 export const transcriptions = pgTable("Transcription", {
@@ -122,7 +103,7 @@ export const transcriptions = pgTable("Transcription", {
 	language: varchar("language", { length: 10 }).notNull().default("en"),
 
 	// 转录数据
-	segments: json("segments")
+	segments: jsonb("segments")
 		.$type<
 			Array<{
 				id: string;
@@ -148,13 +129,13 @@ export const transcriptions = pgTable("Transcription", {
 	completedAt: timestamp("completed_at"),
 });
 
-// Indexes for transcriptions
-export const transcriptionsUploadIdIdx = index(
-	"transcriptions_upload_id_idx",
-).on(transcriptions.uploadId);
-export const transcriptionsStatusIdx = index("transcriptions_status_idx").on(
-	transcriptions.status,
-);
+// Indexes for transcriptions - temporarily disabled to debug issue
+// export const transcriptionsUploadIdIdx = index(
+// 	"transcriptions_upload_id_idx",
+// ).on(transcriptions.uploadId);
+// export const transcriptionsStatusIdx = index("transcriptions_status_idx").on(
+// 	transcriptions.status,
+// );
 
 // 类型导出
 export type User = typeof user.$inferSelect;

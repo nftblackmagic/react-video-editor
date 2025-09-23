@@ -1,10 +1,16 @@
+import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+
+config({
+	path: ".env",
+});
 
 export default defineConfig({
 	schema: "./src/db/schema.ts",
-	out: "./drizzle",
+	out: "./src/db/migrations",
 	dialect: "postgresql",
 	dbCredentials: {
-		url: process.env.DATABASE_URL || "postgresql://localhost:5432/video_editor",
+		// biome-ignore lint: Forbidden non-null assertion.
+		url: process.env.POSTGRES_URL!,
 	},
 });

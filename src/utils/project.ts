@@ -4,7 +4,6 @@
  */
 
 import { FullEDU } from "@/features/editor/transcript/types";
-import { nanoid } from "nanoid";
 
 // ============================================
 // Types and Interfaces
@@ -77,7 +76,7 @@ class ProjectStorage {
 	 * Create a new project with initial media
 	 */
 	createProject(initialMedia: ProjectMedia, name?: string): ProjectData {
-		const projectId = nanoid(10);
+		const projectId = crypto.randomUUID();
 		const now = new Date().toISOString();
 
 		const projectData: ProjectData = {

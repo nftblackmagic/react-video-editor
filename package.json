@@ -12,6 +12,7 @@
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
 		"db:check": "drizzle-kit check",
+		"db:seed": "tsx scripts/seed-demo-user.ts",
 		"cleanup:cache": "tsx scripts/cleanup-media-cache.ts",
 		"cleanup:all": "rm -rf .next node_modules pnpm-lock.yaml && pnpm install",
 		"format": "biome format . --write"
