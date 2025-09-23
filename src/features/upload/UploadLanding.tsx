@@ -19,8 +19,19 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import useUploadStore from "../editor/store/use-upload-store";
 import useProjectStore from "../editor/store/use-project-store";
+import { useEffect } from "react";
+import type { Project } from "@/db/schema";
 
-const UploadLanding = () => {
+interface UploadLandingProps {
+	initialProjects?: Project[];
+	userId?: string;
+}
+
+// TODO: Remove when real authentication is implemented
+// Default demo user UUID - should match the one in page.tsx
+const DEMO_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
+
+const UploadLanding = ({ initialProjects = [], userId = DEMO_USER_ID }: UploadLandingProps) => {
 	const router = useRouter();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isDragOver, setIsDragOver] = useState(false);
@@ -31,12 +42,23 @@ const UploadLanding = () => {
 	const [projectName, setProjectName] = useState("Untitled Project");
 
 	const { addPendingUploads, processUploads } = useUploadStore();
-	const { createProject, projects, refreshProjectList } = useProjectStore();
+	const { createProject, projects, setUserId, setProjects } = useProjectStore();
 
-	// Initialize project list on mount
-	React.useEffect(() => {
-		refreshProjectList();
-	}, [refreshProjectList]);
+	// Initialize store with server-loaded data
+	useEffect(() => {
+		setUserId(userId);
+		// Set initial projects from server - convert to ProjectListItem format
+		if (initialProjects.length > 0) {
+			const projectListItems = initialProjects.map(p => ({
+				id: p.id,
+				name: p.name,
+				thumbnail: p.thumbnail || undefined,
+				createdAt: p.createdAt.toISOString(),
+				updatedAt: p.updatedAt.toISOString(),
+			}));
+			setProjects(projectListItems);
+		}
+	}, [setUserId, setProjects, userId, initialProjects]);
 
 	const handleFileSelect = (file: File) => {
 		// Only accept audio and video files
@@ -120,37 +142,42 @@ const UploadLanding = () => {
 				isPending: !!selectedFile, // Flag to indicate upload is pending
 			};
 
-			const project = createProject(
+			// Create project asynchronously
+			createProject(
 				initialMedia,
 				projectName || `Project ${new Date().toLocaleDateString()}`,
-			);
+			).then((project) => {
+				// Simulate upload progress
+				const progressInterval = setInterval(() => {
+					setUploadProgress((prev) => {
+						const newProgress = prev >= 90 ? 90 : prev + 10;
+						if (prev >= 90) {
+							clearInterval(progressInterval);
+						}
+						return newProgress;
+					});
+				}, 200);
 
-			// Start processing upload
-			setTimeout(() => {
-				processUploads();
-			}, 0);
-
-			// Simulate upload progress
-			const progressInterval = setInterval(() => {
-				setUploadProgress((prev) => {
-					const newProgress = prev >= 90 ? 90 : prev + 10;
-					if (prev >= 90) {
+				// Start processing upload with completion callback
+				setTimeout(() => {
+					processUploads(() => {
+						// Upload is complete and media added to timeline
 						clearInterval(progressInterval);
-					}
-					return newProgress;
-				});
-			}, 200);
+						setUploadProgress(100);
 
-			// Navigate to editor with project ID
-			setTimeout(() => {
-				clearInterval(progressInterval);
-				setUploadProgress(100);
-				router.push(`/${project.id}`);
-			}, 2000);
+						// Navigate immediately after upload completes
+						console.log("✅ Upload complete, navigating to editor");
+						router.push(`/${project.id}`);
+					});
+				}, 0);
+			}).catch((error) => {
+				console.error("Failed to create project:", error);
+				setIsUploading(false);
+				alert("Failed to create project. Please try again.");
+			});
 		} catch (error) {
 			console.error("Failed to start project:", error);
 			setIsUploading(false);
-			alert("Failed to create project. Please try again.");
 		}
 	};
 

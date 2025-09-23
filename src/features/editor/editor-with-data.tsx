@@ -6,6 +6,8 @@ import {
 } from "@/utils/project";
 import { useEffect, useState } from "react";
 import Editor from "./editor";
+import useProjectStore from "./store/use-project-store";
+import useStore from "./store/use-store";
 
 interface EditorWithDataProps {
 	projectId: string;
@@ -37,6 +39,36 @@ export default function EditorWithData({
 	}
 
 	useEffect(() => {
+		// Check Zustand state first - if we have fresh state from upload/navigation
+		const projectStore = useProjectStore.getState();
+		const timelineStore = useStore.getState();
+
+		if (projectStore.currentProjectId === projectId && projectStore.projectData) {
+			console.log("✅ Using Zustand state - no DB reload needed");
+
+			// Build the prepared data from Zustand state
+			const zustandData = {
+				project: {
+					id: projectStore.projectData.id,
+					name: projectStore.projectData.name,
+					createdAt: projectStore.projectData.createdAt,
+					updatedAt: projectStore.projectData.updatedAt,
+				},
+				initialMedia: projectStore.projectData.initialMedia,
+				uploads: projectStore.projectData.uploads || [],
+				tracks: timelineStore.tracks || projectStore.projectData.timeline?.tracks || [],
+				trackItems: timelineStore.trackItemsMap || projectStore.projectData.timeline?.trackItemsMap || {},
+				transitions: timelineStore.transitionsMap || projectStore.projectData.timeline?.transitionsMap || {},
+				compositions: timelineStore.compositions || projectStore.projectData.timeline?.compositions || [],
+				fullEDUs: projectStore.projectData.fullEDUs || [],
+				settings: projectStore.projectData.settings || {},
+			};
+
+			setProjectData(zustandData);
+			setLoadSource("localStorage"); // Actually Zustand, but keeping name for compatibility
+			return;
+		}
+
 		// If we have server data, use it
 		if (serverData) {
 			console.log("Using server-provided data");

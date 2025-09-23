@@ -1,4 +1,6 @@
 import { transcribeAction } from "@/app/(edit)/actions/transcribe";
+import * as transcriptionActions from "@/app/(edit)/actions/transcriptions";
+import * as uploadActions from "@/app/(edit)/actions/uploads";
 import { isTranscribableMedia } from "@/lib/transcription/client-utils";
 import { type ProjectUpload, projectStorage } from "@/utils/project";
 import { type UploadCallbacks, processUpload } from "@/utils/upload-service";
@@ -7,6 +9,7 @@ import { ADD_AUDIO, ADD_IMAGE, ADD_VIDEO } from "@designcombo/state";
 import { generateId } from "@designcombo/timeline";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { toast } from "sonner";
 import { FullEDU } from "../transcript/types";
 import useProjectStore from "./use-project-store";
 import useTranscriptStore from "./use-transcript-store";
@@ -41,7 +44,7 @@ interface IUploadStore {
 	addPendingUploads: (uploads: UploadFile[]) => void;
 	clearPendingUploads: () => void;
 	activeUploads: UploadFile[];
-	processUploads: () => void;
+	processUploads: (onUploadComplete?: () => void) => void;
 	updateUploadProgress: (id: string, progress: number) => void;
 	setUploadStatus: (
 		id: string,
@@ -64,7 +67,7 @@ interface IUploadStore {
 		uploadId: string,
 		edus: FullEDU[],
 		autoSplit?: boolean,
-	) => void;
+	) => Promise<void>;
 	setTranscriptionStatus: (
 		uploadId: string,
 		status: "idle" | "processing" | "completed" | "failed",
@@ -113,7 +116,7 @@ const useUploadStore = create<IUploadStore>()(
 			clearPendingUploads: () => set({ pendingUploads: [] }),
 
 			activeUploads: [],
-			processUploads: () => {
+			processUploads: (onUploadComplete?: () => void) => {
 				const {
 					pendingUploads,
 					activeUploads,
@@ -194,10 +197,14 @@ const useUploadStore = create<IUploadStore>()(
 									uploadsToProcess = [uploadWithId];
 								}
 
-								// Save uploads to current project in localStorage
+								// Save uploads to current project in localStorage and database
 								const projectStore = useProjectStore.getState();
 								const currentProjectId = projectStore.currentProjectId;
 								const projectData = projectStore.projectData;
+								const userId = projectStore.userId;
+
+								// Track uploads saved to database (declare outside if block)
+								const savedUploads: { data: any; dbId: string }[] = [];
 
 								if (currentProjectId) {
 									const projectUploads: ProjectUpload[] = uploadsToProcess.map(
@@ -220,6 +227,64 @@ const useUploadStore = create<IUploadStore>()(
 										currentProjectId,
 										projectUploads,
 									);
+									// Save to database if we have userId and get database IDs
+									if (userId) {
+										for (let i = 0; i < uploadsToProcess.length; i++) {
+											const uploadData = uploadsToProcess[i];
+											try {
+												const result = await uploadActions.createUpload({
+													projectId: currentProjectId,
+													userId: userId,
+													fileName: uploadData.fileName || "unnamed",
+													fileType:
+														uploadData.contentType ||
+														uploadData.type ||
+														"application/octet-stream",
+													fileSize: uploadData.fileSize || 0,
+													url:
+														uploadData.url ||
+														uploadData.metadata?.uploadedUrl ||
+														uploadData.metadata?.bytescaleUrl ||
+														"",
+													uploadServiceId: uploadData.metadata?.fileId,
+													metadata: uploadData.metadata,
+													status: "ready",
+												});
+
+												if (result.success && result.uploadId) {
+													// Update the upload object with the database ID
+													uploadsToProcess[i].uploadId = result.uploadId;
+													uploadsToProcess[i].id = result.uploadId;
+													savedUploads.push({
+														data: uploadsToProcess[i],
+														dbId: result.uploadId,
+													});
+
+													// Also update in the uploads array
+													setUploads((prev) =>
+														prev.map((u) =>
+															u.uploadId === uploadData.uploadId ||
+															u.id === uploadData.uploadId
+																? {
+																		...u,
+																		uploadId: result.uploadId,
+																		id: result.uploadId,
+																	}
+																: u,
+														),
+													);
+													console.log(
+														`✅ Upload saved to database with ID ${result.uploadId}`,
+													);
+												}
+											} catch (error) {
+												console.error(
+													"Failed to save upload to database:",
+													error,
+												);
+											}
+										}
+									}
 
 									// Update initial media URL if this is the initial upload
 									if (
@@ -294,21 +359,37 @@ const useUploadStore = create<IUploadStore>()(
 										}
 									}
 
-									// Start transcription for transcribable media
-									console.log(`🔍 Checking if transcribable: ${contentType}`);
-									if (isTranscribableMedia(contentType)) {
+									// Trigger upload completion callback after first media is added to timeline
+									if (onUploadComplete && uploadsToProcess.indexOf(data) === 0) {
+										// Force immediate timeline sync to DB (non-blocking)
+										const projectStore = useProjectStore.getState();
+										projectStore.forceTimelineSync();
+
+										// Call the completion callback
+										setTimeout(() => {
+											onUploadComplete();
+										}, 100); // Small delay to ensure dispatch is processed
+									}
+
+									// Start transcription for transcribable media ONLY if saved to DB
+									const savedUpload = savedUploads.find((s) => s.data === data);
+									if (savedUpload && isTranscribableMedia(contentType)) {
 										console.log(`✅ Media is transcribable: ${contentType}`);
 										if (mediaUrl) {
 											console.log(
-												`🚀 Starting transcription with URL: ${mediaUrl}`,
+												`🚀 Starting transcription with DB ID ${savedUpload.dbId} for URL: ${mediaUrl}`,
 											);
-											// Use the upload ID as the transcription ID
-											get().startTranscription(upload.id, mediaUrl);
+											// Use the confirmed database ID
+											get().startTranscription(savedUpload.dbId, mediaUrl);
 										} else {
 											console.warn(
 												"⚠️ No media URL available for transcription",
 											);
 										}
+									} else if (isTranscribableMedia(contentType)) {
+										console.log(
+											"⚠️ Skipping transcription - upload not saved to database",
+										);
 									} else {
 										console.log(
 											`⏭️ Media type not transcribable: ${contentType}`,
@@ -376,6 +457,12 @@ const useUploadStore = create<IUploadStore>()(
 					return;
 				}
 
+				// Show toast notification
+				toast.info("Transcribing audio...", {
+					description: "This may take a moment",
+					duration: 5000,
+				});
+
 				try {
 					// TODO: Make language configurable - defaulting to Chinese for now
 					const language = "zh"; // TODO: add language selector in UI
@@ -384,26 +471,38 @@ const useUploadStore = create<IUploadStore>()(
 					const edus = await transcribeAction(url, language);
 					console.log(`✅ Transcription successful: ${edus.length} EDUs`);
 
+					// Show success toast
+					toast.success("Transcription complete", {
+						description: `${edus.length} segments processed`,
+					});
+
 					// Use completeTranscription to handle everything including auto-split
 					get().completeTranscription(uploadId, edus, true);
 				} catch (error) {
 					console.error("❌ Transcription failed:", error);
 
-					// Show more detailed error message
+					// Show error toast
+					let errorMessage = "Failed to transcribe audio";
 					if (error instanceof Error) {
 						console.error("Error details:", error.message);
 
 						// Check for specific error types
 						if (error.message.includes("authentication")) {
+							errorMessage = "API key issue - check settings";
 							console.error(
 								"🔑 API Key Issue: Please check ELEVENLABS_API_KEY in .env file",
 							);
 						} else if (error.message.includes("language")) {
+							errorMessage = "Language not supported";
 							console.error(
 								"🌐 Language Issue: The specified language may not be supported",
 							);
 						}
 					}
+
+					toast.error("Transcription failed", {
+						description: errorMessage,
+					});
 
 					set((state) => ({
 						transcriptionStatus: {
@@ -414,7 +513,7 @@ const useUploadStore = create<IUploadStore>()(
 				}
 			},
 
-			completeTranscription: (
+			completeTranscription: async (
 				uploadId: string,
 				edus: FullEDU[],
 				autoSplit = true,
@@ -433,6 +532,31 @@ const useUploadStore = create<IUploadStore>()(
 				// Load into TranscriptStore for display
 				if (edus.length > 0) {
 					useTranscriptStore.getState().initEDUs(edus);
+
+					// Save to database immediately
+					const projectStore = useProjectStore.getState();
+					if (projectStore.userId) {
+						try {
+							// uploadId should already be the database UUID
+							console.log(`📝 Saving transcription for upload ID ${uploadId}`);
+
+							await transcriptionActions.saveTranscription(uploadId, edus, {
+								language: "zh", // TODO: Make this configurable
+								wordCount: edus.reduce(
+									(acc, edu) => acc + edu.edu_content.split(/\s+/).length,
+									0,
+								),
+								duration: edus[edus.length - 1]?.edu_end || 0,
+								provider: "elevenlabs", // TODO: Get from config
+							});
+							console.log("✅ Transcription saved to database");
+						} catch (error) {
+							console.error(
+								"❌ Failed to save transcription to database:",
+								error,
+							);
+						}
+					}
 
 					// Auto-split and add to timeline if enabled
 					// Note: For now, we'll only auto-split if explicitly requested
