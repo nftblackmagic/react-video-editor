@@ -43,6 +43,7 @@ interface ProjectStore {
 	// Actions
 	setUserId: (userId: string) => void;
 	setProjects: (projects: ProjectListItem[]) => void;
+	setProjectData: (projectId: string, projectData: ProjectData) => void;
 	createProject: (initialMedia: ProjectMedia, name?: string) => Promise<ProjectData>;
 	loadProject: (projectId: string) => Promise<boolean>;
 	saveCurrentProject: () => Promise<void>;
@@ -51,6 +52,7 @@ interface ProjectStore {
 	updateProjectSettings: (settings: Partial<ProjectData["settings"]>) => Promise<void>;
 	updateProjectFullEDUs: (fullEDUs: FullEDU[]) => Promise<void>;
 	updateInitialMediaUrl: (url: string) => void;
+	clearInitialMedia: () => Promise<void>;
 	deleteProject: (projectId: string) => Promise<void>;
 	refreshProjectList: () => Promise<void>;
 	clearCurrentProject: () => void;
@@ -111,6 +113,15 @@ const useProjectStore = create<ProjectStore>()(
 
 			setProjects: (projects: ProjectListItem[]) => {
 				set({ projects });
+			},
+
+			// Set project data directly
+			setProjectData: (projectId: string, projectData: ProjectData) => {
+				set({
+					currentProjectId: projectId,
+					projectData,
+					initialMediaUrl: projectData.initialMedia?.url || null,
+				});
 			},
 
 			// Create new project - now async and DB-first
@@ -372,6 +383,43 @@ const useProjectStore = create<ProjectStore>()(
 				});
 			},
 
+			// Clear initial media after it has been added to timeline
+			clearInitialMedia: async () => {
+				const { currentProjectId, projectData, userId } = get();
+				if (!currentProjectId || !projectData || !userId) return;
+
+				console.log("🧹 Clearing initialMedia from project");
+
+				// Clear in Zustand state
+				const updated = {
+					...projectData,
+					initialMedia: {
+						url: "",
+						type: "video" as const,
+						uploadId: "",
+						isPending: false,
+					},
+				};
+				set({
+					projectData: updated,
+					initialMediaUrl: "",
+				});
+
+				// Sync to database immediately (not debounced since this is important)
+				try {
+					await projectActions.updateProjectSettings(currentProjectId, userId, {
+						initialMedia: {
+							url: "",
+							type: "video",
+							uploadId: "",
+							isPending: false,
+						},
+					});
+				} catch (error) {
+					console.error("Failed to clear initialMedia from database:", error);
+				}
+			},
+
 			// Delete project
 			deleteProject: async (projectId: string) => {
 				const { userId } = get();
@@ -560,7 +608,6 @@ const useProjectStore = create<ProjectStore>()(
 					// Directly call the server action without debounce
 					await timelineActions.saveTimeline(currentProjectId, userId, timelineData);
 					set({ lastSyncedAt: new Date() });
-					console.log("✅ Timeline force synced to database");
 				} catch (error) {
 					console.error("Failed to force sync timeline:", error);
 				}

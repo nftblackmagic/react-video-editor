@@ -1,146 +1,158 @@
 "use client";
 
-import {
-	loadProjectFromClient,
-	prepareProjectDataForEditor,
-} from "@/utils/project";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Editor from "./editor";
 import useProjectStore from "./store/use-project-store";
 import useStore from "./store/use-store";
+import useTranscriptStore from "./store/use-transcript-store";
 
 interface EditorWithDataProps {
 	projectId: string;
-	serverData: ReturnType<typeof prepareProjectDataForEditor> | null;
-	dataSource?: "database" | "client-required";
+	serverData: any;
 }
 
 /**
- * Client component that handles the Server-First with Client Fallback pattern
- * 1. Uses server data if available (future: from database)
- * 2. Falls back to localStorage if server data not available
- * 3. Shows loading state during client-side data fetch
+ * Client component that manages the DB → Zustand → UI flow
+ *
+ * IMPORTANT DATA LOADING STRATEGY:
+ *
+ * 1. Timeline data (tracks, items, transitions):
+ *    - Can be persisted in localStorage via Zustand
+ *    - Preserves user edits between sessions
+ *    - Falls back to DB data if localStorage is empty
+ *
+ * 2. Transcriptions (fullEDUs):
+ *    - MUST ALWAYS be loaded from database
+ *    - Too large for localStorage (can be hundreds of segments with word-level timestamps)
+ *    - Never persisted in Zustand's localStorage
+ *    - Always fetched fresh on page load to ensure accuracy
+ *
+ * 3. Uploads metadata:
+ *    - Always loaded from database to ensure consistency
+ *    - Contains file references that must match DB state
+ *
+ * Data flow: DB → Server Component → Client Component → Zustand Store → UI
  */
 export default function EditorWithData({
 	projectId,
 	serverData,
-	dataSource,
 }: EditorWithDataProps) {
-	const [projectData, setProjectData] = useState<ReturnType<
-		typeof prepareProjectDataForEditor
-	> | null>(serverData);
-	const [isLoading, setIsLoading] = useState(false);
-	const [loadSource, setLoadSource] = useState<
-		"server" | "localStorage" | "none"
-	>(serverData ? "server" : "none");
 
 	if (!projectId) {
 		return null;
 	}
 
 	useEffect(() => {
-		// Check Zustand state first - if we have fresh state from upload/navigation
-		const projectStore = useProjectStore.getState();
-		const timelineStore = useStore.getState();
+		const initializeStores = async () => {
+			// Get store instances
+			const projectStore = useProjectStore.getState();
+			const timelineStore = useStore.getState();
+			const transcriptStore = useTranscriptStore.getState();
 
-		if (projectStore.currentProjectId === projectId && projectStore.projectData) {
-			console.log("✅ Using Zustand state - no DB reload needed");
+			// Check if we already have this project loaded in Zustand
+			if (projectStore.currentProjectId === projectId) {
+				// Check if timeline data exists
+				if (timelineStore.tracks.length > 0 || Object.keys(timelineStore.trackItemsMap).length > 0) {
 
-			// Build the prepared data from Zustand state
-			const zustandData = {
-				project: {
-					id: projectStore.projectData.id,
-					name: projectStore.projectData.name,
-					createdAt: projectStore.projectData.createdAt,
-					updatedAt: projectStore.projectData.updatedAt,
-				},
-				initialMedia: projectStore.projectData.initialMedia,
-				uploads: projectStore.projectData.uploads || [],
-				tracks: timelineStore.tracks || projectStore.projectData.timeline?.tracks || [],
-				trackItems: timelineStore.trackItemsMap || projectStore.projectData.timeline?.trackItemsMap || {},
-				transitions: timelineStore.transitionsMap || projectStore.projectData.timeline?.transitionsMap || {},
-				compositions: timelineStore.compositions || projectStore.projectData.timeline?.compositions || [],
-				fullEDUs: projectStore.projectData.fullEDUs || [],
-				settings: projectStore.projectData.settings || {},
-			};
+					// CRITICAL: Always load fullEDUs from server, never from localStorage
+					// Transcriptions are too large and should always be fresh from DB
+					if (serverData?.fullEDUs && serverData.fullEDUs.length > 0) {
+						transcriptStore.initEDUs(serverData.fullEDUs);
 
-			setProjectData(zustandData);
-			setLoadSource("localStorage"); // Actually Zustand, but keeping name for compatibility
-			return;
-		}
+						// Also update the project data with fullEDUs
+						const currentProjectData = projectStore.projectData;
+						if (currentProjectData) {
+							projectStore.setProjectData(projectId, {
+								...currentProjectData,
+								fullEDUs: serverData.fullEDUs
+							});
+						}
+					}
 
-		// If we have server data, use it
-		if (serverData) {
-			console.log("Using server-provided data");
-			return;
-		}
+					// Also load uploads from server if available
+					if (serverData?.uploads && serverData.uploads.length > 0) {
+						const currentProjectData = projectStore.projectData;
+						if (currentProjectData) {
+							projectStore.setProjectData(projectId, {
+								...currentProjectData,
+								uploads: serverData.uploads
+							});
+						}
+					}
 
-		// If server indicates client loading is required, load from localStorage
-		if (dataSource === "client-required" && projectId) {
-			console.log("Server requires client-side loading, checking localStorage");
-			setIsLoading(true);
-
-			try {
-				const data = loadProjectFromClient(projectId);
-				if (data) {
-					const prepared = prepareProjectDataForEditor(data);
-					setProjectData(prepared);
-					setLoadSource("localStorage");
-					console.log("Loaded project from localStorage");
-				} else {
-					console.error("No project data found in localStorage or DB");
-				}
-			} catch (error) {
-				console.error("Error loading from localStorage:", error);
-			} finally {
-				setIsLoading(false);
-			}
-		}
-	}, [projectId, serverData, dataSource]);
-
-	// Show loading state only when actively loading from client
-	if (isLoading) {
-		return (
-			<div className="flex h-screen w-screen items-center justify-center">
-				<div className="text-center">
-					<div className="text-muted-foreground mb-2">Loading project...</div>
-					<div className="text-xs text-muted-foreground">
-						Checking local storage
-					</div>
-				</div>
-			</div>
-		);
-	}
-
-	// Log the data source for debugging
-	useEffect(() => {
-		if (loadSource !== "none") {
-			console.log(`Project loaded from: ${loadSource}`);
-		}
-	}, [loadSource]);
-
-	// Pass all data as props to Editor
-	return (
-		<Editor
-			projectId={projectId}
-			projectData={
-				projectData?.project || {
-					id: "",
-					name: "",
-					createdAt: "",
-					updatedAt: "",
+					return;
 				}
 			}
-			initialMedia={
-				projectData?.initialMedia || { url: "", type: "video", uploadId: "" }
+
+			// If we have server data, load it into Zustand
+			if (serverData) {
+	
+				// Update project store
+				if (serverData.project) {
+					projectStore.setUserId(serverData.project.userId || "");
+					projectStore.setProjects([]);
+
+					// Set the project data
+					const projectData = {
+						id: serverData.project.id,
+						name: serverData.project.name,
+						initialMedia: serverData.initialMedia || { url: "", type: "video", uploadId: "" },
+						uploads: serverData.uploads || [],
+						timeline: {
+							tracks: serverData.tracks || [],
+							trackItemsMap: serverData.trackItems || {},
+							trackItemIds: Object.keys(serverData.trackItems || {}),
+							transitionsMap: serverData.transitions || {},
+							transitionIds: Object.keys(serverData.transitions || {}),
+							compositions: serverData.compositions || [],
+							duration: serverData.settings?.duration || 30000,
+						},
+						settings: serverData.settings || {
+							fps: 30,
+							width: 1920,
+							height: 1080,
+							background: { type: "color", value: "#000000" },
+						},
+						fullEDUs: serverData.fullEDUs || [],
+						createdAt: serverData.project.createdAt,
+						updatedAt: serverData.project.updatedAt,
+					};
+
+					// Set current project using the new method
+					projectStore.setProjectData(projectId, projectData);
+				}
+
+				// Update timeline store with timeline data
+				await timelineStore.setState({
+					tracks: serverData.tracks || [],
+					trackItemsMap: serverData.trackItems || {},
+					trackItemIds: Object.keys(serverData.trackItems || {}),
+					transitionsMap: serverData.transitions || {},
+					transitionIds: Object.keys(serverData.transitions || {}),
+					compositions: serverData.compositions || [],
+					duration: serverData.settings?.duration || 30000,
+					fps: serverData.settings?.fps || 30,
+					size: {
+						width: serverData.settings?.width || 1920,
+						height: serverData.settings?.height || 1080,
+					},
+					background: serverData.settings?.background || {
+						type: "color",
+						value: "#000000",
+					},
+				});
+
+				// Update transcript store if we have EDUs
+				if (serverData.fullEDUs && serverData.fullEDUs.length > 0) {
+					transcriptStore.initEDUs(serverData.fullEDUs);
+				}
+
 			}
-			initialTracks={projectData?.tracks || []}
-			initialTrackItems={projectData?.trackItems || {}}
-			initialTransitions={projectData?.transitions || {}}
-			initialCompositions={projectData?.compositions || []}
-			initialFullEDUs={projectData?.fullEDUs || []}
-			initialSettings={projectData?.settings || {}}
-			initialUploads={projectData?.uploads || []}
-		/>
-	);
+		};
+
+		initializeStores();
+	}, [projectId, serverData]);
+
+	// Render Editor without props - it will read from Zustand
+	return <Editor projectId={projectId} />;
 }

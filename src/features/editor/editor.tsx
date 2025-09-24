@@ -8,8 +8,7 @@ import { useIsLargeScreen } from "@/hooks/use-media-query";
 import { useSceneStore } from "@/store/use-scene-store";
 import { ProjectMedia } from "@/utils/project";
 import { dispatch } from "@designcombo/events";
-import StateManager, { DESIGN_LOAD } from "@designcombo/state";
-import { ADD_AUDIO, ADD_VIDEO } from "@designcombo/state";
+import StateManager, { DESIGN_LOAD, ADD_AUDIO, ADD_VIDEO } from "@designcombo/state";
 import { generateId } from "@designcombo/timeline";
 import { ITrackItem } from "@designcombo/types";
 import { useEffect, useRef, useState } from "react";
@@ -47,43 +46,29 @@ const stateManager = new StateManager({
 interface EditorProps {
 	// Project identification
 	projectId: string;
-
-	// Initial data passed from server/parent
-	projectData: {
-		id: string;
-		name: string;
-		createdAt: string;
-		updatedAt: string;
-	};
-	initialMedia: ProjectMedia;
-	initialTracks?: any[];
-	initialTrackItems?: Record<string, any>;
-	initialTransitions?: Record<string, any>;
-	initialCompositions?: any[];
-	initialFullEDUs?: FullEDU[];
-	initialSettings?: Record<string, any>;
-	initialUploads?: any[];
 }
 
-const Editor = ({
-	projectId,
-	projectData,
-	initialMedia,
-	initialTracks = [],
-	initialTrackItems = {},
-	initialTransitions = {},
-	initialCompositions = [],
-	initialFullEDUs = [],
-	initialSettings = {},
-	initialUploads = [],
-}: EditorProps) => {
-	const [projectName, setProjectName] = useState<string>(
-		projectData?.name || "Untitled video",
-	);
-	const { updateProjectTimeline, updateProjectFullEDUs, setUserId } =
-		useProjectStore();
+const Editor = ({ projectId }: EditorProps) => {
+	// Get data from Zustand stores
+	const {
+		projectData,
+		updateProjectTimeline,
+		updateProjectFullEDUs,
+		clearInitialMedia,
+		setUserId
+	} = useProjectStore();
+
 	const { fullEDUs, initEDUs } = useTranscriptStore();
+
+	const [projectName, setProjectName] = useState<string>("");
 	const { scene } = useSceneStore();
+
+	// Update project name when project data changes
+	useEffect(() => {
+		if (projectData?.name) {
+			setProjectName(projectData.name);
+		}
+	}, [projectData?.name]);
 	const timelinePanelRef = useRef<ImperativePanelHandle>(null);
 	const sceneRef = useRef<SceneRef>(null);
 	const {
@@ -123,24 +108,27 @@ const Editor = ({
 
 	// Initialize timeline with granular loading and verification
 	useEffect(() => {
+
 		if (!timeline || timelineInitialized) return;
 
-		// Load timeline data granularly
+		// Load timeline data from Zustand stores
 		const hasData =
-			initialTracks.length > 0 || Object.keys(initialTrackItems).length > 0;
+			tracks.length > 0 || Object.keys(trackItemsMap).length > 0;
 
 		if (hasData) {
-			// Load with proper validation
+			// Load with proper validation from Zustand state
 			const results = loadTimelineGranularly({
-				tracks: initialTracks,
-				trackItems: initialTrackItems,
-				transitions: initialTransitions,
-				compositions: initialCompositions,
-				fps: initialSettings?.fps,
-				size:
-					initialSettings?.width && initialSettings?.height
-						? { width: initialSettings.width, height: initialSettings.height }
-						: undefined,
+				tracks: tracks,
+				trackItems: trackItemsMap,
+				transitions: transitionsMap,
+				compositions: compositions,
+				fps: projectData?.settings?.fps || 30,
+				size: projectData?.settings?.width && projectData?.settings?.height
+					? {
+						width: projectData.settings.width,
+						height: projectData.settings.height
+					}
+					: { width: 1920, height: 1080 },
 			});
 
 			// Verify the load was successful
@@ -153,27 +141,74 @@ const Editor = ({
 				);
 			}
 		} else {
+			// If no timeline data but we have initial media, add it now
+			if (projectData?.initialMedia?.url && !projectData?.initialMedia?.isPending) {
+				const { type, url } = projectData.initialMedia;
+
+				// Add the media to timeline
+				setTimeout(async () => {
+					if (type === "video") {
+						dispatch(ADD_VIDEO, {
+							payload: {
+								id: generateId(),
+								details: {
+									src: url,
+								},
+								metadata: {
+									previewUrl: "https://cdn.designcombo.dev/caption_previews/static_preset1.webp",
+								},
+							},
+							options: {
+								resourceId: "main",
+								scaleMode: "fit",
+							},
+						});
+					} else if (type === "audio") {
+						const audioPayload = {
+							payload: {
+								id: generateId(),
+								type: "audio",
+								details: {
+									src: url,
+								},
+								metadata: {},
+							},
+							options: {},
+						};
+						dispatch(ADD_AUDIO, audioPayload);
+					}
+
+					// Clear initialMedia after successfully adding to timeline
+					await clearInitialMedia();
+				}, 500); // Small delay to ensure timeline is ready
+			} else {
+			}
+
 			// Mark as initialized even if no data to prevent re-runs
 			setTimelineInitialized(true);
 		}
 	}, [
 		timeline,
-		initialTracks,
-		initialTrackItems,
-		initialTransitions,
-		initialCompositions,
-		initialSettings,
+		tracks,
+		trackItemsMap,
+		transitionsMap,
+		compositions,
+		projectData,
 		timelineInitialized,
+		clearInitialMedia,
 	]);
 
 	// Handle initial media separately
 	useEffect(() => {
-		if (!initialMedia || !timeline) return;
 
-		const { type, url, isPending } = initialMedia;
+		if (!projectData?.initialMedia || !timeline) return;
+
+		const { type, url, isPending } = projectData.initialMedia;
 
 		// Skip if media is pending upload
-		if (isPending || !url) return;
+		if (isPending || !url) {
+			return;
+		}
 
 		// Check if media already exists in trackItems to prevent duplicates
 		const mediaExists = Object.values(trackItemsMap).some(
@@ -193,49 +228,60 @@ const Editor = ({
 			return; // Skip if timeline already has content
 		}
 
-		try {
-			// Dispatch appropriate action based on media type
-			if (type === "video") {
-				dispatch(ADD_VIDEO, {
-					payload: {
-						id: generateId(),
-						details: {
-							src: url,
-						},
-						metadata: {
-							previewUrl:
-								"https://cdn.designcombo.dev/caption_previews/static_preset1.webp",
-						},
-					},
-					options: {
-						resourceId: "main",
-						scaleMode: "fit",
-					},
-				});
-			} else if (type === "audio") {
-				dispatch(ADD_AUDIO, {
-					payload: {
-						id: generateId(),
-						type: "audio",
-						details: {
-							src: url,
-						},
-						metadata: {},
-					},
-					options: {},
-				});
-			}
-		} catch (error) {
-			console.error("Error adding initial media:", error);
-		}
-	}, [initialMedia, timeline, trackItemsMap, tracks]);
 
-	// Initialize transcripts from fullEDUs
+		const addMediaAndClear = async () => {
+			try {
+				// Dispatch appropriate action based on media type
+				if (type === "video") {
+					dispatch(ADD_VIDEO, {
+						payload: {
+							id: generateId(),
+							details: {
+								src: url,
+							},
+							metadata: {
+								previewUrl:
+									"https://cdn.designcombo.dev/caption_previews/static_preset1.webp",
+							},
+						},
+						options: {
+							resourceId: "main",
+							scaleMode: "fit",
+						},
+					});
+				} else if (type === "audio") {
+					const audioPayload = {
+						payload: {
+							id: generateId(),
+							type: "audio",
+							details: {
+								src: url,
+							},
+							metadata: {},
+						},
+						options: {},
+					};
+					console.log("🎵 DEBUG - ADD_AUDIO payload:", audioPayload);
+					dispatch(ADD_AUDIO, audioPayload);
+				}
+
+				// Clear initialMedia after successfully adding to timeline
+				console.log("🧹 DEBUG - Clearing initialMedia to prevent re-dispatch on refresh");
+				await clearInitialMedia();
+			} catch (error) {
+				console.error("Error adding initial media:", error);
+			}
+		};
+
+		addMediaAndClear();
+	}, [projectData?.initialMedia, timeline, trackItemsMap, tracks, clearInitialMedia]);
+
+	// Initialize transcripts from project data
 	useEffect(() => {
-		if (initialFullEDUs && initialFullEDUs.length > 0) {
-			initEDUs(initialFullEDUs);
+		if (projectData?.fullEDUs && projectData.fullEDUs.length > 0) {
+			initEDUs(projectData.fullEDUs);
 		}
-	}, [initialFullEDUs, initEDUs]);
+	}, [projectData?.fullEDUs, initEDUs]);
 
 	// Save timeline state to project store (debounced)
 	useEffect(() => {

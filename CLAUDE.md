@@ -128,6 +128,105 @@ PostgreSQL database using Drizzle ORM with tables:
 8. **Transcript Editing**: Use TranscriptEditor component for segment editing with timeline sync
 9. **Project Persistence**: Projects auto-save to localStorage via project store
 
+### Data Loading Strategy
+
+**IMPORTANT**: Different types of data have different persistence requirements:
+
+#### 1. Always Load from Database (Never localStorage)
+- **Transcriptions (fullEDUs)**: Too large for localStorage, can contain hundreds of segments with word-level timestamps
+- **Uploads metadata**: Must match database state for file references
+- **User settings**: Should be consistent across devices
+- **Project metadata**: Name, creation date, etc.
+
+#### 2. Can Be Persisted in localStorage
+- **Timeline data** (tracks, trackItems, transitions): Preserves user edits between sessions
+- **UI layout preferences**: Panel sizes, view settings
+- **Playback position**: Current time, zoom level
+
+#### 3. Session Only (Never Persisted)
+- **Runtime references**: Player ref, timeline instance
+- **Temporary UI state**: Modals, tooltips
+- **Active selections**: Currently selected items
+
+#### Data Flow Architecture
+```
+Database (PostgreSQL)
+    ↓
+Server Component (page.tsx)
+    ↓
+Client Component (EditorWithData)
+    ↓
+Zustand Stores
+    ↓
+UI Components
+```
+
+**Implementation Notes**:
+- EditorWithData component manages the data loading strategy
+- Timeline data uses Zustand persist middleware for localStorage
+- Transcriptions are always fetched fresh from DB on page load
+- Use `dataSource` flag to track where data originated
+
+### Proposed Improved Data Architecture
+
+To better handle the complexity of mixed data sources, consider implementing:
+
+#### 1. Separate Zustand Stores by Data Lifetime
+```typescript
+// Persistent store (with localStorage)
+useTimelineStore - tracks, items, transitions
+useLayoutStore - UI preferences, panel sizes
+
+// Database-only store (no persistence)
+useTranscriptStore - fullEDUs, segments
+useUploadStore - file metadata, URLs
+
+// Session store (memory only)
+useRuntimeStore - refs, instances, temp state
+```
+
+#### 2. Data Source Tracking
+Add explicit tracking of where data comes from:
+```typescript
+interface DataWithSource<T> {
+  data: T;
+  source: 'database' | 'localStorage' | 'memory';
+  lastSynced?: Date;
+  isDirty?: boolean;
+}
+```
+
+#### 3. Smart Data Merging
+Create utilities to intelligently merge server and local data:
+```typescript
+// Priority: User edits > Database > Defaults
+function mergeProjectData(
+  serverData: ProjectData,
+  localData: Partial<ProjectData>
+): ProjectData {
+  return {
+    // Always from server (never trust local)
+    fullEDUs: serverData.fullEDUs,
+    uploads: serverData.uploads,
+
+    // Prefer local if exists (user edits)
+    timeline: localData.timeline || serverData.timeline,
+
+    // Merge settings
+    settings: { ...serverData.settings, ...localData.settings }
+  };
+}
+```
+
+#### 4. Clear Data Contracts
+Document which components own which data:
+- **Server Component**: Fetches from DB, passes to client
+- **EditorWithData**: Orchestrates data loading, decides source
+- **Zustand Stores**: Hold runtime state, manage persistence
+- **UI Components**: Read-only consumers of store data
+
+This architecture would make data flow more predictable and prevent issues like missing transcriptions or stale data.
+
 ### Environment Variables
 
 Required for full functionality:
@@ -158,7 +257,7 @@ NEXT_PUBLIC_BYTESCALE_API_KEY=""
 - Biome is configured for formatting with tabs and double quotes - run `pnpm format` before committing
 - ESLint is configured through Next.js - run `pnpm lint` to check for issues
 - No test framework is currently configured
-- The user will run `pnpm dev` manually - do not run `pnpm dev` yourself
+- The user will run `pnpm dev` manually - do not run `pnpm dev` in claude code. Never launch the localhost
 - You can use playwright MCP to open a browser to localhost:3000 for testing
 
 ### Service Architecture

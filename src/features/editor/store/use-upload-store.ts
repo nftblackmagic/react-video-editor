@@ -4,9 +4,6 @@ import * as uploadActions from "@/app/(edit)/actions/uploads";
 import { isTranscribableMedia } from "@/lib/transcription/client-utils";
 import { type ProjectUpload, projectStorage } from "@/utils/project";
 import { type UploadCallbacks, processUpload } from "@/utils/upload-service";
-import { dispatch } from "@designcombo/events";
-import { ADD_AUDIO, ADD_IMAGE, ADD_VIDEO } from "@designcombo/state";
-import { generateId } from "@designcombo/timeline";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { toast } from "sonner";
@@ -203,6 +200,7 @@ const useUploadStore = create<IUploadStore>()(
 								const projectData = projectStore.projectData;
 								const userId = projectStore.userId;
 
+
 								// Track uploads saved to database (declare outside if block)
 								const savedUploads: { data: any; dbId: string }[] = [];
 
@@ -273,9 +271,6 @@ const useUploadStore = create<IUploadStore>()(
 																: u,
 														),
 													);
-													console.log(
-														`✅ Upload saved to database with ID ${result.uploadId}`,
-													);
 												}
 											} catch (error) {
 												console.error(
@@ -291,14 +286,22 @@ const useUploadStore = create<IUploadStore>()(
 										projectData?.initialMedia?.uploadId === upload.id &&
 										projectData?.initialMedia?.isPending
 									) {
-										const mediaUrl = projectUploads[0]?.url;
+										// Get the actual uploaded URL from the processed uploads
+										// The URL is in the uploadsToProcess array, not the original upload object
+										const processedUpload = uploadsToProcess.find(u => u.uploadId === upload.id) || uploadsToProcess[0];
+										const mediaUrl = processedUpload?.url ||
+														processedUpload?.metadata?.uploadedUrl ||
+														processedUpload?.metadata?.originalUrl ||
+														processedUpload?.filePath;
+
+
 										if (mediaUrl) {
 											projectStore.updateInitialMediaUrl(mediaUrl);
 										}
 									}
 								}
 
-								// Automatically add media to timeline and start transcription
+								// Process uploads and prepare for timeline
 								for (const data of uploadsToProcess) {
 									const contentType = data.contentType || data.type || "";
 									const mediaUrl =
@@ -307,78 +310,22 @@ const useUploadStore = create<IUploadStore>()(
 										data.url ||
 										data.filePath;
 
-									// Auto-add to timeline based on media type
-									if (mediaUrl) {
-										if (contentType.startsWith("video/")) {
-											dispatch(ADD_VIDEO, {
-												payload: {
-													id: generateId(),
-													details: {
-														src: mediaUrl,
-													},
-													metadata: {
-														previewUrl:
-															"https://cdn.designcombo.dev/caption_previews/static_preset1.webp",
-													},
-												},
-												options: {
-													resourceId: "main",
-													scaleMode: "fit",
-												},
-											});
-										} else if (contentType.startsWith("image/")) {
-											dispatch(ADD_IMAGE, {
-												payload: {
-													id: generateId(),
-													type: "image",
-													display: {
-														from: 0,
-														to: 5000,
-													},
-													details: {
-														src: mediaUrl,
-													},
-													metadata: {},
-												},
-												options: {},
-											});
-										} else if (contentType.startsWith("audio/")) {
-											// Add audio to timeline immediately
-											const audioId = generateId();
-											dispatch(ADD_AUDIO, {
-												payload: {
-													id: audioId,
-													type: "audio",
-													details: {
-														src: mediaUrl,
-													},
-													metadata: {},
-												},
-												options: {},
-											});
-										}
-									}
+									// NOTE: We don't dispatch ADD_AUDIO/ADD_VIDEO here anymore
+									// The media will be added to timeline after navigation when timeline is ready
+									// This ensures StateManager subscriptions are active and tracks persist
 
-									// Trigger upload completion callback after first media is added to timeline
+									// Trigger upload completion callback after first media is processed
 									if (onUploadComplete && uploadsToProcess.indexOf(data) === 0) {
-										// Force immediate timeline sync to DB (non-blocking)
-										const projectStore = useProjectStore.getState();
-										projectStore.forceTimelineSync();
-
-										// Call the completion callback
+										// Call the completion callback to trigger navigation
 										setTimeout(() => {
 											onUploadComplete();
-										}, 100); // Small delay to ensure dispatch is processed
+										}, 100); // Small delay to ensure upload data is saved
 									}
 
 									// Start transcription for transcribable media ONLY if saved to DB
 									const savedUpload = savedUploads.find((s) => s.data === data);
 									if (savedUpload && isTranscribableMedia(contentType)) {
-										console.log(`✅ Media is transcribable: ${contentType}`);
-										if (mediaUrl) {
-											console.log(
-												`🚀 Starting transcription with DB ID ${savedUpload.dbId} for URL: ${mediaUrl}`,
-											);
+											if (mediaUrl) {
 											// Use the confirmed database ID
 											get().startTranscription(savedUpload.dbId, mediaUrl);
 										} else {
@@ -469,7 +416,6 @@ const useUploadStore = create<IUploadStore>()(
 					console.log(`📝 Calling transcribeAction with language: ${language}`);
 
 					const edus = await transcribeAction(url, language);
-					console.log(`✅ Transcription successful: ${edus.length} EDUs`);
 
 					// Show success toast
 					toast.success("Transcription complete", {
@@ -549,7 +495,6 @@ const useUploadStore = create<IUploadStore>()(
 								duration: edus[edus.length - 1]?.edu_end || 0,
 								provider: "elevenlabs", // TODO: Get from config
 							});
-							console.log("✅ Transcription saved to database");
 						} catch (error) {
 							console.error(
 								"❌ Failed to save transcription to database:",

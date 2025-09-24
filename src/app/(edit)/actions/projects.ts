@@ -121,6 +121,7 @@ export async function updateProjectSettings(
 		fps?: number;
 		background?: { type: string; value: string };
 		duration?: number;
+		initialMedia?: any;
 	},
 ): Promise<{ success: boolean; error?: string }> {
 	try {
@@ -143,6 +144,7 @@ export async function updateProjectSettings(
 
 		const updateData: any = {};
 
+		// Handle top-level fields
 		if (settings.name !== undefined) updateData.name = settings.name;
 		if (settings.width !== undefined) updateData.width = settings.width;
 		if (settings.height !== undefined) updateData.height = settings.height;
@@ -151,6 +153,19 @@ export async function updateProjectSettings(
 			updateData.background = settings.background;
 		if (settings.duration !== undefined)
 			updateData.duration = settings.duration;
+
+		// Handle settings JSONB field updates (like initialMedia)
+		if (settings.initialMedia !== undefined) {
+			// Get current project to merge settings
+			const currentProject = await projectQueries.getProjectById(projectId);
+			if (currentProject) {
+				const currentSettings = (currentProject.settings as any) || {};
+				updateData.settings = {
+					...currentSettings,
+					initialMedia: settings.initialMedia,
+				};
+			}
+		}
 
 		const updated = await projectQueries.updateProject(projectId, updateData);
 
