@@ -86,9 +86,7 @@ export async function saveTranscription(
 /**
  * Get transcription by upload ID
  */
-export async function getTranscription(
-	uploadId: string,
-): Promise<{
+export async function getTranscription(uploadId: string): Promise<{
 	success: boolean;
 	transcription?: Transcription;
 	fullEDUs?: FullEDU[];
@@ -232,9 +230,7 @@ export async function deleteTranscription(
  * Get transcription for a project
  * This is a helper that gets all transcriptions for uploads in a project
  */
-export async function getProjectTranscriptions(
-	projectId: string,
-): Promise<{
+export async function getProjectTranscriptions(projectId: string): Promise<{
 	success: boolean;
 	transcriptions?: Transcription[];
 	error?: string;

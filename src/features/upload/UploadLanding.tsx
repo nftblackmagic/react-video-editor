@@ -31,7 +31,10 @@ interface UploadLandingProps {
 // Default demo user UUID - should match the one in page.tsx
 const DEMO_USER_ID = "550e8400-e29b-41d4-a716-446655440000";
 
-const UploadLanding = ({ initialProjects = [], userId = DEMO_USER_ID }: UploadLandingProps) => {
+const UploadLanding = ({
+	initialProjects = [],
+	userId = DEMO_USER_ID,
+}: UploadLandingProps) => {
 	const router = useRouter();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isDragOver, setIsDragOver] = useState(false);
@@ -49,7 +52,7 @@ const UploadLanding = ({ initialProjects = [], userId = DEMO_USER_ID }: UploadLa
 		setUserId(userId);
 		// Set initial projects from server - convert to ProjectListItem format
 		if (initialProjects.length > 0) {
-			const projectListItems = initialProjects.map(p => ({
+			const projectListItems = initialProjects.map((p) => ({
 				id: p.id,
 				name: p.name,
 				thumbnail: p.thumbnail || undefined,
@@ -146,35 +149,37 @@ const UploadLanding = ({ initialProjects = [], userId = DEMO_USER_ID }: UploadLa
 			createProject(
 				initialMedia,
 				projectName || `Project ${new Date().toLocaleDateString()}`,
-			).then((project) => {
-				// Simulate upload progress
-				const progressInterval = setInterval(() => {
-					setUploadProgress((prev) => {
-						const newProgress = prev >= 90 ? 90 : prev + 10;
-						if (prev >= 90) {
+			)
+				.then((project) => {
+					// Simulate upload progress
+					const progressInterval = setInterval(() => {
+						setUploadProgress((prev) => {
+							const newProgress = prev >= 90 ? 90 : prev + 10;
+							if (prev >= 90) {
+								clearInterval(progressInterval);
+							}
+							return newProgress;
+						});
+					}, 200);
+
+					// Start processing upload with completion callback
+					setTimeout(() => {
+						processUploads(() => {
+							// Upload is complete and media added to timeline
 							clearInterval(progressInterval);
-						}
-						return newProgress;
-					});
-				}, 200);
+							setUploadProgress(100);
 
-				// Start processing upload with completion callback
-				setTimeout(() => {
-					processUploads(() => {
-						// Upload is complete and media added to timeline
-						clearInterval(progressInterval);
-						setUploadProgress(100);
-
-						// Navigate immediately after upload completes
-						console.log("✅ Upload complete, navigating to editor");
-						router.push(`/${project.id}`);
-					});
-				}, 0);
-			}).catch((error) => {
-				console.error("Failed to create project:", error);
-				setIsUploading(false);
-				alert("Failed to create project. Please try again.");
-			});
+							// Navigate immediately after upload completes
+							console.log("✅ Upload complete, navigating to editor");
+							router.push(`/${project.id}`);
+						});
+					}, 0);
+				})
+				.catch((error) => {
+					console.error("Failed to create project:", error);
+					setIsUploading(false);
+					alert("Failed to create project. Please try again.");
+				});
 		} catch (error) {
 			console.error("Failed to start project:", error);
 			setIsUploading(false);

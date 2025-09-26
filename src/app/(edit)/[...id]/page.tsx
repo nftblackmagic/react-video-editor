@@ -120,10 +120,5 @@ export default async function Page({
 
 	// Pass server data to client component
 	// Client component will handle fallback to localStorage if needed
-	return (
-		<EditorWithData
-			projectId={projectId}
-			serverData={preparedData}
-		/>
-	);
+	return <EditorWithData projectId={projectId} serverData={preparedData} />;
 }

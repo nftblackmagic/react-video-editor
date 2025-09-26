@@ -8,7 +8,11 @@ import { useIsLargeScreen } from "@/hooks/use-media-query";
 import { useSceneStore } from "@/store/use-scene-store";
 import { ProjectMedia } from "@/utils/project";
 import { dispatch } from "@designcombo/events";
-import StateManager, { DESIGN_LOAD, ADD_AUDIO, ADD_VIDEO } from "@designcombo/state";
+import StateManager, {
+	DESIGN_LOAD,
+	ADD_AUDIO,
+	ADD_VIDEO,
+} from "@designcombo/state";
 import { generateId } from "@designcombo/timeline";
 import { ITrackItem } from "@designcombo/types";
 import { useEffect, useRef, useState } from "react";
@@ -55,7 +59,7 @@ const Editor = ({ projectId }: EditorProps) => {
 		updateProjectTimeline,
 		updateProjectFullEDUs,
 		clearInitialMedia,
-		setUserId
+		setUserId,
 	} = useProjectStore();
 
 	const { fullEDUs, initEDUs } = useTranscriptStore();
@@ -108,12 +112,10 @@ const Editor = ({ projectId }: EditorProps) => {
 
 	// Initialize timeline with granular loading and verification
 	useEffect(() => {
-
 		if (!timeline || timelineInitialized) return;
 
 		// Load timeline data from Zustand stores
-		const hasData =
-			tracks.length > 0 || Object.keys(trackItemsMap).length > 0;
+		const hasData = tracks.length > 0 || Object.keys(trackItemsMap).length > 0;
 
 		if (hasData) {
 			// Load with proper validation from Zustand state
@@ -123,12 +125,13 @@ const Editor = ({ projectId }: EditorProps) => {
 				transitions: transitionsMap,
 				compositions: compositions,
 				fps: projectData?.settings?.fps || 30,
-				size: projectData?.settings?.width && projectData?.settings?.height
-					? {
-						width: projectData.settings.width,
-						height: projectData.settings.height
-					}
-					: { width: 1920, height: 1080 },
+				size:
+					projectData?.settings?.width && projectData?.settings?.height
+						? {
+								width: projectData.settings.width,
+								height: projectData.settings.height,
+							}
+						: { width: 1920, height: 1080 },
 			});
 
 			// Verify the load was successful
@@ -142,7 +145,10 @@ const Editor = ({ projectId }: EditorProps) => {
 			}
 		} else {
 			// If no timeline data but we have initial media, add it now
-			if (projectData?.initialMedia?.url && !projectData?.initialMedia?.isPending) {
+			if (
+				projectData?.initialMedia?.url &&
+				!projectData?.initialMedia?.isPending
+			) {
 				const { type, url } = projectData.initialMedia;
 
 				// Add the media to timeline
@@ -155,7 +161,8 @@ const Editor = ({ projectId }: EditorProps) => {
 									src: url,
 								},
 								metadata: {
-									previewUrl: "https://cdn.designcombo.dev/caption_previews/static_preset1.webp",
+									previewUrl:
+										"https://cdn.designcombo.dev/caption_previews/static_preset1.webp",
 								},
 							},
 							options: {
@@ -200,7 +207,6 @@ const Editor = ({ projectId }: EditorProps) => {
 
 	// Handle initial media separately
 	useEffect(() => {
-
 		if (!projectData?.initialMedia || !timeline) return;
 
 		const { type, url, isPending } = projectData.initialMedia;
@@ -227,7 +233,6 @@ const Editor = ({ projectId }: EditorProps) => {
 		if (hasExistingContent) {
 			return; // Skip if timeline already has content
 		}
-
 
 		const addMediaAndClear = async () => {
 			try {
@@ -266,7 +271,9 @@ const Editor = ({ projectId }: EditorProps) => {
 				}
 
 				// Clear initialMedia after successfully adding to timeline
-				console.log("🧹 DEBUG - Clearing initialMedia to prevent re-dispatch on refresh");
+				console.log(
+					"🧹 DEBUG - Clearing initialMedia to prevent re-dispatch on refresh",
+				);
 				await clearInitialMedia();
 			} catch (error) {
 				console.error("Error adding initial media:", error);
@@ -274,7 +281,13 @@ const Editor = ({ projectId }: EditorProps) => {
 		};
 
 		addMediaAndClear();
-	}, [projectData?.initialMedia, timeline, trackItemsMap, tracks, clearInitialMedia]);
+	}, [
+		projectData?.initialMedia,
+		timeline,
+		trackItemsMap,
+		tracks,
+		clearInitialMedia,
+	]);
 
 	// Initialize transcripts from project data
 	useEffect(() => {

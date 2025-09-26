@@ -37,7 +37,6 @@ export default function EditorWithData({
 	projectId,
 	serverData,
 }: EditorWithDataProps) {
-
 	if (!projectId) {
 		return null;
 	}
@@ -52,8 +51,10 @@ export default function EditorWithData({
 			// Check if we already have this project loaded in Zustand
 			if (projectStore.currentProjectId === projectId) {
 				// Check if timeline data exists
-				if (timelineStore.tracks.length > 0 || Object.keys(timelineStore.trackItemsMap).length > 0) {
-
+				if (
+					timelineStore.tracks.length > 0 ||
+					Object.keys(timelineStore.trackItemsMap).length > 0
+				) {
 					// CRITICAL: Always load fullEDUs from server, never from localStorage
 					// Transcriptions are too large and should always be fresh from DB
 					if (serverData?.fullEDUs && serverData.fullEDUs.length > 0) {
@@ -64,7 +65,7 @@ export default function EditorWithData({
 						if (currentProjectData) {
 							projectStore.setProjectData(projectId, {
 								...currentProjectData,
-								fullEDUs: serverData.fullEDUs
+								fullEDUs: serverData.fullEDUs,
 							});
 						}
 					}
@@ -75,7 +76,7 @@ export default function EditorWithData({
 						if (currentProjectData) {
 							projectStore.setProjectData(projectId, {
 								...currentProjectData,
-								uploads: serverData.uploads
+								uploads: serverData.uploads,
 							});
 						}
 					}
@@ -86,7 +87,6 @@ export default function EditorWithData({
 
 			// If we have server data, load it into Zustand
 			if (serverData) {
-	
 				// Update project store
 				if (serverData.project) {
 					projectStore.setUserId(serverData.project.userId || "");
@@ -96,7 +96,11 @@ export default function EditorWithData({
 					const projectData = {
 						id: serverData.project.id,
 						name: serverData.project.name,
-						initialMedia: serverData.initialMedia || { url: "", type: "video", uploadId: "" },
+						initialMedia: serverData.initialMedia || {
+							url: "",
+							type: "video",
+							uploadId: "",
+						},
 						uploads: serverData.uploads || [],
 						timeline: {
 							tracks: serverData.tracks || [],
@@ -146,7 +150,6 @@ export default function EditorWithData({
 				if (serverData.fullEDUs && serverData.fullEDUs.length > 0) {
 					transcriptStore.initEDUs(serverData.fullEDUs);
 				}
-
 			}
 		};
 

@@ -19,7 +19,9 @@ if (process.env.POSTGRES_URL) {
 export const db = new Proxy({} as ReturnType<typeof drizzle>, {
 	get(_, prop) {
 		if (!dbConnection) {
-			throw new Error("Database connection not initialized. Please check your POSTGRES_URL environment variable.");
+			throw new Error(
+				"Database connection not initialized. Please check your POSTGRES_URL environment variable.",
+			);
 		}
 		return dbConnection[prop as keyof typeof dbConnection];
 	},

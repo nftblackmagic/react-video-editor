@@ -1,8 +1,16 @@
-import { useState, useEffect } from "react";
-import useStore from "../store/use-store";
-import { Volume2, VolumeX, AlertTriangle, Info, Play, Pause, RefreshCw } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+	AlertTriangle,
+	Info,
+	Pause,
+	Play,
+	RefreshCw,
+	Volume2,
+	VolumeX,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import useStore from "../store/use-store";
 
 /**
  * Debug panel to show audio state and help diagnose playback issues
@@ -47,7 +55,8 @@ export const AudioDebugPanel = () => {
 	useEffect(() => {
 		const checkAudioContext = () => {
 			// Check if AudioContext exists
-			const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+			const AudioContext =
+				window.AudioContext || (window as any).webkitAudioContext;
 			if (AudioContext) {
 				// Try to get the existing context or create one
 				const ctx = new AudioContext();
@@ -108,7 +117,8 @@ export const AudioDebugPanel = () => {
 
 	const handleResumeAudioContext = async () => {
 		console.log("🔊 Attempting to resume audio context");
-		const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+		const AudioContext =
+			window.AudioContext || (window as any).webkitAudioContext;
 		if (AudioContext) {
 			const ctx = new AudioContext();
 			if (ctx.state === "suspended") {
@@ -201,7 +211,7 @@ export const AudioDebugPanel = () => {
 										>
 											{item.details.src.startsWith("blob:")
 												? "blob:// (EXPIRED ON REFRESH!)"
-												: item.details.src.substring(0, 50) + "..."}
+												: `${item.details.src.substring(0, 50)}...`}
 										</code>
 									</div>
 								) : (
@@ -256,8 +266,8 @@ export const AudioDebugPanel = () => {
 									audioContextState === "running"
 										? "bg-green-500/20 text-green-500"
 										: audioContextState === "suspended"
-										? "bg-yellow-500/20 text-yellow-500"
-										: "bg-gray-500/20 text-gray-500"
+											? "bg-yellow-500/20 text-yellow-500"
+											: "bg-gray-500/20 text-gray-500"
 								}`}
 							>
 								{audioContextState}

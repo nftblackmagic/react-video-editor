@@ -15,19 +15,17 @@ function isValidUUID(id: string): boolean {
 /**
  * Create a new upload record
  */
-export async function createUpload(
-	data: {
-		projectId: string;
-		userId: string;
-		fileName: string;
-		fileType: string;
-		fileSize: number;
-		url: string;
-		uploadServiceId?: string;
-		metadata?: any;
-		status?: "processing" | "ready" | "failed";
-	},
-): Promise<{ success: boolean; uploadId?: string; error?: string }> {
+export async function createUpload(data: {
+	projectId: string;
+	userId: string;
+	fileName: string;
+	fileType: string;
+	fileSize: number;
+	url: string;
+	uploadServiceId?: string;
+	metadata?: any;
+	status?: "processing" | "ready" | "failed";
+}): Promise<{ success: boolean; uploadId?: string; error?: string }> {
 	try {
 		// Validate UUIDs
 		if (!isValidUUID(data.projectId)) {
