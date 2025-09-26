@@ -15,6 +15,7 @@ import {
 	getNextZoomLevel,
 	getPreviousZoomLevel,
 	getZoomByIndex,
+	timeMsToUnits,
 } from "../utils/timeline";
 import { useCurrentPlayerFrame } from "../hooks/use-current-frame";
 import { Slider } from "@/components/ui/slider";
@@ -81,6 +82,79 @@ const IconPlayerSkipForward = ({ size }: { size: number }) => (
 		<path d="M20 5l0 14" />
 	</svg>
 );
+
+// Helper function to maintain playhead position during zoom
+const applyZoomWithPlayhead = (
+	newScale: ITimelineScaleState,
+	playerRef: any,
+	fps: number,
+) => {
+	console.log("🎯 Header Zoom Button clicked", { newScale });
+
+	// Get current playhead position
+	const currentFrame = playerRef?.current?.getCurrentFrame() || 0;
+	const playheadTimeMs = (currentFrame / fps) * 1000;
+
+	// Get scroll container
+	const scrollContainer = document.getElementById("viewportH");
+	if (!scrollContainer) {
+		console.warn("⚠️ ScrollContainer not found in Header zoom!");
+		return;
+	}
+
+	// Get current scroll before zoom - ensure we get the actual value
+	const currentScrollLeft = Math.max(0, scrollContainer.scrollLeft || 0);
+
+	// Get current scale
+	const currentScale = useStore.getState().scale;
+
+	// Calculate playhead position in pixels using the timeline utils function
+	// Add timeline offset to account for the left padding
+	const timelineOffsetX = 40; // This should match TIMELINE_OFFSET_CANVAS_LEFT
+	const currentPlayheadPos = timeMsToUnits(playheadTimeMs, currentScale.zoom) + timelineOffsetX;
+	const newPlayheadPos = timeMsToUnits(playheadTimeMs, newScale.zoom) + timelineOffsetX;
+
+	// Calculate where playhead currently appears in viewport (its visual position on screen)
+	const playheadViewportOffset = currentPlayheadPos - currentScrollLeft;
+
+	// Keep playhead at same viewport position after zoom
+	let newScrollLeft = newPlayheadPos - playheadViewportOffset;
+
+	// Ensure we don't scroll past the beginning
+	newScrollLeft = Math.max(0, newScrollLeft);
+
+	console.log("📏 Zoom calculation in Header:", {
+		currentFrame,
+		playheadTimeMs,
+		currentScrollLeft,
+		playheadViewportOffset,
+		currentPlayheadPos,
+		newPlayheadPos,
+		newScrollLeft,
+		currentScaleZoom: currentScale.zoom,
+		newScaleZoom: newScale.zoom,
+	});
+
+	// Apply the new scale with the target scroll position
+	dispatch(TIMELINE_SCALE_CHANGED, {
+		payload: {
+			scale: newScale,
+			targetScrollLeft: newScrollLeft, // Include target scroll position
+		},
+	});
+
+	// Set the scroll position after a small delay to ensure scale has been applied
+	setTimeout(() => {
+		scrollContainer.scrollLeft = newScrollLeft;
+		console.log(
+			"📏 Applied new scroll:",
+			newScrollLeft,
+			"Actual scroll:",
+			scrollContainer.scrollLeft,
+		);
+	}, 10);
+};
+
 const Header = () => {
 	const [playing, setPlaying] = useState(false);
 	const { duration, fps, scale, playerRef, activeIds } = useStore();
@@ -288,6 +362,8 @@ const Header = () => {
 						scale={scale}
 						onChangeTimelineScale={changeScale}
 						duration={duration}
+						playerRef={playerRef}
+						fps={fps}
 					/>
 				</div>
 			</div>
@@ -299,10 +375,14 @@ const ZoomControl = ({
 	scale,
 	onChangeTimelineScale,
 	duration,
+	playerRef,
+	fps,
 }: {
 	scale: ITimelineScaleState;
 	onChangeTimelineScale: (scale: ITimelineScaleState) => void;
 	duration: number;
+	playerRef: any;
+	fps: number;
 }) => {
 	const [localValue, setLocalValue] = useState(scale.index);
 	const timelineOffsetX = useTimelineOffsetX();
@@ -313,12 +393,12 @@ const ZoomControl = ({
 
 	const onZoomOutClick = () => {
 		const previousZoom = getPreviousZoomLevel(scale);
-		onChangeTimelineScale(previousZoom);
+		applyZoomWithPlayhead(previousZoom, playerRef, fps);
 	};
 
 	const onZoomInClick = () => {
 		const nextZoom = getNextZoomLevel(scale);
-		onChangeTimelineScale(nextZoom);
+		applyZoomWithPlayhead(nextZoom, playerRef, fps);
 	};
 
 	const onZoomFitClick = () => {

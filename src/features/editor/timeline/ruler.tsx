@@ -189,12 +189,18 @@ const Ruler = (props: RulerProps) => {
 	};
 
 	const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-		console.log("Ruler mouse down");
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 
 		const rect = canvas.getBoundingClientRect();
 		const clickX = event.clientX - rect.left;
+
+		console.log("🖱️ Ruler mouse down:", {
+			clickX,
+			currentScrollLeft: scrollLeft,
+			clientX: event.clientX,
+			rectLeft: rect.left,
+		});
 
 		setIsDragging(true);
 		setHasDragged(false);
@@ -244,20 +250,31 @@ const Ruler = (props: RulerProps) => {
 
 			const rect = canvas.getBoundingClientRect();
 			const currentX = event.clientX - rect.left;
-			const deltaX = Math.abs(dragRef.current.startX - currentX);
+			const deltaX = dragRef.current.startX - currentX;
+			const absDeltaX = Math.abs(deltaX);
 
 			// Only start dragging if we've moved more than 5 pixels
-			if (deltaX > 5) {
+			if (absDeltaX > 5) {
 				dragRef.current.hasDragged = true;
 				setHasDragged(true);
-				console.log("Ruler mouse move", dragRef.current.isDragging);
+				console.log("🖱️ Ruler mouse move:", {
+					isDragging: dragRef.current.isDragging,
+					startX: dragRef.current.startX,
+					currentX,
+					deltaX,
+					startScrollPos: dragRef.current.startScrollPos,
+				});
 
 				const newScrollLeft = Math.max(
 					0,
-					dragRef.current.startScrollPos + (dragRef.current.startX - currentX),
+					dragRef.current.startScrollPos + deltaX,
 				);
 
-				console.log("New scroll left:", newScrollLeft);
+				console.log("📍 New scroll left:", {
+					calculated: newScrollLeft,
+					startPos: dragRef.current.startScrollPos,
+					delta: deltaX,
+				});
 				onScroll?.(newScrollLeft);
 			}
 		},
@@ -274,20 +291,31 @@ const Ruler = (props: RulerProps) => {
 			const rect = canvas.getBoundingClientRect();
 			const touch = event.touches[0];
 			const currentX = touch.clientX - rect.left;
-			const deltaX = Math.abs(dragRef.current.startX - currentX);
+			const deltaX = dragRef.current.startX - currentX;
+			const absDeltaX = Math.abs(deltaX);
 
 			// Only start dragging if we've moved more than 5 pixels
-			if (deltaX > 5) {
+			if (absDeltaX > 5) {
 				dragRef.current.hasDragged = true;
 				setHasDragged(true);
-				console.log("Ruler touch move", dragRef.current.isDragging);
+				console.log("👆 Ruler touch move:", {
+					isDragging: dragRef.current.isDragging,
+					startX: dragRef.current.startX,
+					currentX,
+					deltaX,
+					startScrollPos: dragRef.current.startScrollPos,
+				});
 
 				const newScrollLeft = Math.max(
 					0,
-					dragRef.current.startScrollPos + (dragRef.current.startX - currentX),
+					dragRef.current.startScrollPos + deltaX,
 				);
 
-				console.log("New scroll left:", newScrollLeft);
+				console.log("📍 New scroll left (touch):", {
+					calculated: newScrollLeft,
+					startPos: dragRef.current.startScrollPos,
+					delta: deltaX,
+				});
 				onScroll?.(newScrollLeft);
 			}
 		},

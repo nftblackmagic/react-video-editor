@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, RefObject } from "react";
 import Header from "./header";
 import Ruler from "./ruler";
 import { timeMsToUnits, unitsToTimeMs } from "@designcombo/timeline";
@@ -22,6 +22,7 @@ import {
 import { ITrackItem } from "@designcombo/types";
 import { useTimelineOffsetX } from "../hooks/use-timeline-offset";
 import { useStateManagerEvents } from "../hooks/use-state-manager-events";
+import { useTimelineZoom } from "../hooks/use-timeline-zoom";
 
 CanvasTimeline.registerItems({
 	Text,
@@ -35,6 +36,8 @@ const EMPTY_SIZE = { width: 0, height: 0 };
 const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 	// prevent duplicate scroll events
 	const canScrollRef = useRef(false);
+	const isZoomingRef = useRef(false); // Track if we're in the middle of a zoom operation
+	const targetScrollAfterZoom = useRef<number | null>(null); // Store intended scroll position after zoom
 	const timelineContainerRef = useRef<HTMLDivElement>(null);
 	const [scrollLeft, setScrollLeft] = useState(0);
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -52,20 +55,60 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 
 	const { setTimeline } = useStore();
 
+	// Add zoom functionality (handles keyboard shortcuts and wheel zoom)
+	useTimelineZoom({
+		containerRef: timelineContainerRef as RefObject<HTMLDivElement>,
+		initialScale: scale,
+		isInTimeline: true,
+		playerRef: playerRef || undefined,
+		fps,
+	});
+
 	// Use the extracted state manager events hook
 	useStateManagerEvents(stateManager);
 
 	const onScroll = (v: { scrollTop: number; scrollLeft: number }) => {
+		const negatedScrollLeft = -v.scrollLeft;
+
+		console.log("🔄 Canvas onScroll callback:", {
+			scrollLeft: v.scrollLeft,
+			scrollTop: v.scrollTop,
+			negatedScrollLeft,
+			isZooming: isZoomingRef.current,
+			targetScroll: targetScrollAfterZoom.current,
+		});
+
+		// During zoom operations, prevent scroll resets
+		if (isZoomingRef.current) {
+			// If we have a target scroll position and the canvas is trying to reset to near 0
+			if (targetScrollAfterZoom.current && targetScrollAfterZoom.current > 100 && Math.abs(v.scrollLeft) < 50) {
+				console.log("⚠️ Preventing canvas scroll reset during zoom. Target:", targetScrollAfterZoom.current);
+				// Force the canvas back to the target position
+				if (timeline) {
+					timeline.scrollTo({ scrollLeft: targetScrollAfterZoom.current });
+				}
+				return;
+			}
+
+			// Also ignore if trying to reset from a high value to near 0
+			if (Math.abs(scrollLeft) > 100 && Math.abs(v.scrollLeft) < 50) {
+				console.log("⚠️ Ignoring canvas scroll reset during zoom");
+				return;
+			}
+		}
+
 		if (horizontalScrollbarVpRef.current && verticalScrollbarVpRef.current) {
 			verticalScrollbarVpRef.current.scrollTop = -v.scrollTop;
-			horizontalScrollbarVpRef.current.scrollLeft = -v.scrollLeft;
-			setScrollLeft(-v.scrollLeft);
+			horizontalScrollbarVpRef.current.scrollLeft = negatedScrollLeft;
+			setScrollLeft(negatedScrollLeft);
 		}
 	};
 
 	useEffect(() => {
 		if (playerRef?.current) {
-			canScrollRef.current = playerRef?.current.isPlaying();
+			const isPlaying = playerRef?.current.isPlaying();
+			console.log("🎬 Player state changed - isPlaying:", isPlaying);
+			canScrollRef.current = isPlaying;
 		}
 	}, [playerRef?.current?.isPlaying()]);
 
@@ -79,6 +122,16 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 		const canvasBoudingX =
 			canvasEl.getBoundingClientRect().x + canvasEl.clientWidth;
 		const playHeadPos = position - scrollLeft + 40;
+
+		console.log("🎯 Auto-scroll check:", {
+			currentFrame,
+			position,
+			scrollLeft,
+			playHeadPos,
+			canvasBoudingX,
+			shouldAutoScroll: playHeadPos >= canvasBoudingX,
+		});
+
 		if (playHeadPos >= canvasBoudingX) {
 			const scrollDivWidth = horizontalScrollbar.clientWidth;
 			const totalScrollWidth = horizontalScrollbar.scrollWidth;
@@ -86,6 +139,15 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 			const availableScroll =
 				totalScrollWidth - (scrollDivWidth + currentPosScroll);
 			const scaleScroll = availableScroll / scrollDivWidth;
+
+			console.log("📜 Auto-scrolling timeline:", {
+				scrollDivWidth,
+				totalScrollWidth,
+				currentPosScroll,
+				availableScroll,
+				scaleScroll,
+			});
+
 			if (scaleScroll >= 0) {
 				if (scaleScroll > 1)
 					horizontalScrollbar.scrollTo({
@@ -193,14 +255,47 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 	}, []);
 
 	const handleOnScrollH = (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
-		const scrollLeft = e.currentTarget.scrollLeft;
-		if (canScrollRef.current) {
+		const newScrollLeft = e.currentTarget.scrollLeft;
+		const absCurrentScrollLeft = Math.abs(scrollLeft);
+
+		// Check if this is a suspicious reset during zoom
+		// The canvas might be resetting the scroll after a scale change
+		const isSuspiciousReset =
+			isZoomingRef.current &&
+			absCurrentScrollLeft > 100 &&
+			newScrollLeft < 50;
+
+		console.log("📜 handleOnScrollH called:", {
+			newScrollLeft,
+			currentScrollLeft: scrollLeft,
+			absCurrentScrollLeft,
+			canScroll: canScrollRef.current,
+			eventTarget: e.currentTarget.id,
+			isZooming: isZoomingRef.current,
+			isSuspiciousReset,
+		});
+
+		// Ignore suspicious scroll resets during zoom operations
+		if (isSuspiciousReset) {
+			console.log("⚠️ Ignoring suspicious scroll reset during zoom");
+			e.currentTarget.scrollLeft = absCurrentScrollLeft; // Restore the previous scroll
+			return;
+		}
+
+		// During zoom, also prevent small incremental scrolls that look like animations
+		if (isZoomingRef.current && absCurrentScrollLeft > 500 && newScrollLeft < 100) {
+			console.log("⚠️ Blocking incremental scroll reset during zoom");
+			return;
+		}
+
+		if (canScrollRef.current || isZoomingRef.current) {
 			const canvas = canvasRef.current;
 			if (canvas) {
-				canvas.scrollTo({ scrollLeft });
+				console.log("📜 Updating canvas from scrollbar:", newScrollLeft);
+				canvas.scrollTo({ scrollLeft: newScrollLeft });
 			}
 		}
-		setScrollLeft(scrollLeft);
+		setScrollLeft(newScrollLeft);
 	};
 
 	const handleOnScrollV = (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
@@ -260,28 +355,82 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 	};
 
 	const onRulerScroll = (newScrollLeft: number) => {
+		console.log("🎯 onRulerScroll called with:", {
+			newScrollLeft,
+			currentScrollLeft: scrollLeft,
+			hasCanvas: !!canvasRef.current,
+			hasScrollbar: !!horizontalScrollbarVpRef.current,
+		});
+
+		// When ruler is being dragged, we always want to update
+		// Set canScrollRef to true temporarily for drag operations
+		const previousCanScroll = canScrollRef.current;
+		canScrollRef.current = true;
+
 		// Update the timeline canvas scroll position
 		const canvas = canvasRef.current;
 		if (canvas) {
+			console.log("📐 Updating canvas scroll to:", newScrollLeft);
 			canvas.scrollTo({ scrollLeft: newScrollLeft });
 		}
 
 		// Update the horizontal scrollbar position
 		if (horizontalScrollbarVpRef.current) {
+			console.log("📏 Updating scrollbar to:", newScrollLeft);
 			horizontalScrollbarVpRef.current.scrollLeft = newScrollLeft;
 		}
 
 		// Update the local scroll state
+		console.log("📍 Setting scrollLeft state to:", newScrollLeft);
 		setScrollLeft(newScrollLeft);
+
+		// Restore the previous canScroll state after a small delay
+		// This prevents conflicts with the scrollbar drag
+		setTimeout(() => {
+			canScrollRef.current = previousCanScroll;
+		}, 0);
 	};
 
 	useEffect(() => {
+		// Mark that we're in a zoom operation
+		isZoomingRef.current = true;
+
+		// Store the current scroll position to prevent reset
+		const currentAbsScrollLeft = Math.abs(scrollLeft);
+		targetScrollAfterZoom.current = currentAbsScrollLeft;
+
 		const availableScroll = horizontalScrollbarVpRef.current?.scrollWidth;
 		if (!availableScroll || !timeline) return;
+
+		console.log("⚡ Scale changed effect:", {
+			scale: scale.zoom,
+			availableScroll,
+			currentScrollLeft: scrollLeft,
+			currentAbsScrollLeft,
+			timelineWidth: timeline.width,
+		});
+
 		const canvasWidth = timeline.width;
-		if (availableScroll < canvasWidth + scrollLeft) {
-			timeline.scrollTo({ scrollLeft: availableScroll - canvasWidth });
+		if (availableScroll < canvasWidth + currentAbsScrollLeft) {
+			const newScrollLeft = availableScroll - canvasWidth;
+			console.log("⚡ Adjusting scroll due to scale change:", {
+				from: currentAbsScrollLeft,
+				to: newScrollLeft,
+			});
+			timeline.scrollTo({ scrollLeft: newScrollLeft });
+		} else {
+			// Preserve the scroll position during scale change
+			timeline.scrollTo({ scrollLeft: currentAbsScrollLeft });
 		}
+
+		// Clear the zooming flag after a delay to allow scroll updates to complete
+		const timer = setTimeout(() => {
+			isZoomingRef.current = false;
+			targetScrollAfterZoom.current = null;
+			console.log("🏁 Zoom operation completed");
+		}, 500);
+
+		return () => clearTimeout(timer);
 	}, [scale]);
 
 	return (
