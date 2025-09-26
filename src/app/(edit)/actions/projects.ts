@@ -8,7 +8,8 @@ import type { ProjectData, ProjectMedia } from "@/utils/project";
  * Validate if a string is a valid UUID v4
  */
 function isValidUUID(id: string): boolean {
-	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+	const uuidRegex =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 	return uuidRegex.test(id);
 }
 
@@ -152,7 +153,7 @@ export async function updateProjectSettings(
 		if (settings.background !== undefined)
 			updateData.background = settings.background;
 		if (settings.duration !== undefined)
-			updateData.duration = settings.duration;
+			updateData.duration = Math.round(settings.duration);
 
 		// Handle settings JSONB field updates (like initialMedia)
 		if (settings.initialMedia !== undefined) {

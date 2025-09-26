@@ -200,7 +200,6 @@ const useUploadStore = create<IUploadStore>()(
 								const projectData = projectStore.projectData;
 								const userId = projectStore.userId;
 
-
 								// Track uploads saved to database (declare outside if block)
 								const savedUploads: { data: any; dbId: string }[] = [];
 
@@ -288,12 +287,14 @@ const useUploadStore = create<IUploadStore>()(
 									) {
 										// Get the actual uploaded URL from the processed uploads
 										// The URL is in the uploadsToProcess array, not the original upload object
-										const processedUpload = uploadsToProcess.find(u => u.uploadId === upload.id) || uploadsToProcess[0];
-										const mediaUrl = processedUpload?.url ||
-														processedUpload?.metadata?.uploadedUrl ||
-														processedUpload?.metadata?.originalUrl ||
-														processedUpload?.filePath;
-
+										const processedUpload =
+											uploadsToProcess.find((u) => u.uploadId === upload.id) ||
+											uploadsToProcess[0];
+										const mediaUrl =
+											processedUpload?.url ||
+											processedUpload?.metadata?.uploadedUrl ||
+											processedUpload?.metadata?.originalUrl ||
+											processedUpload?.filePath;
 
 										if (mediaUrl) {
 											projectStore.updateInitialMediaUrl(mediaUrl);
@@ -315,7 +316,10 @@ const useUploadStore = create<IUploadStore>()(
 									// This ensures StateManager subscriptions are active and tracks persist
 
 									// Trigger upload completion callback after first media is processed
-									if (onUploadComplete && uploadsToProcess.indexOf(data) === 0) {
+									if (
+										onUploadComplete &&
+										uploadsToProcess.indexOf(data) === 0
+									) {
 										// Call the completion callback to trigger navigation
 										setTimeout(() => {
 											onUploadComplete();
@@ -325,7 +329,7 @@ const useUploadStore = create<IUploadStore>()(
 									// Start transcription for transcribable media ONLY if saved to DB
 									const savedUpload = savedUploads.find((s) => s.data === data);
 									if (savedUpload && isTranscribableMedia(contentType)) {
-											if (mediaUrl) {
+										if (mediaUrl) {
 											// Use the confirmed database ID
 											get().startTranscription(savedUpload.dbId, mediaUrl);
 										} else {
@@ -492,7 +496,7 @@ const useUploadStore = create<IUploadStore>()(
 									(acc, edu) => acc + edu.edu_content.split(/\s+/).length,
 									0,
 								),
-								duration: edus[edus.length - 1]?.edu_end || 0,
+								duration: Math.round(edus[edus.length - 1]?.edu_end || 0),
 								provider: "elevenlabs", // TODO: Get from config
 							});
 						} catch (error) {

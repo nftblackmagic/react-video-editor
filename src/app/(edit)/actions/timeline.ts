@@ -58,7 +58,7 @@ export async function saveTimeline(
 		if (timeline.compositions !== undefined)
 			timelineData.compositions = timeline.compositions;
 		if (timeline.duration !== undefined)
-			timelineData.duration = timeline.duration;
+			timelineData.duration = Math.round(timeline.duration);
 
 		const updated = await projectQueries.updateProjectTimeline(
 			projectId,

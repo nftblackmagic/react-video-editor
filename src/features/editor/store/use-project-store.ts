@@ -44,12 +44,19 @@ interface ProjectStore {
 	setUserId: (userId: string) => void;
 	setProjects: (projects: ProjectListItem[]) => void;
 	setProjectData: (projectId: string, projectData: ProjectData) => void;
-	createProject: (initialMedia: ProjectMedia, name?: string) => Promise<ProjectData>;
+	createProject: (
+		initialMedia: ProjectMedia,
+		name?: string,
+	) => Promise<ProjectData>;
 	loadProject: (projectId: string) => Promise<boolean>;
 	saveCurrentProject: () => Promise<void>;
 	updateProjectName: (name: string) => Promise<void>;
-	updateProjectTimeline: (timeline: Partial<ProjectData["timeline"]>) => Promise<void>;
-	updateProjectSettings: (settings: Partial<ProjectData["settings"]>) => Promise<void>;
+	updateProjectTimeline: (
+		timeline: Partial<ProjectData["timeline"]>,
+	) => Promise<void>;
+	updateProjectSettings: (
+		settings: Partial<ProjectData["settings"]>,
+	) => Promise<void>;
 	updateProjectFullEDUs: (fullEDUs: FullEDU[]) => Promise<void>;
 	updateInitialMediaUrl: (url: string) => void;
 	clearInitialMedia: () => Promise<void>;
@@ -65,8 +72,13 @@ interface ProjectStore {
 	loadProjectUploads: () => void;
 
 	// Internal sync methods
-	syncTimelineToDatabase: (timeline: Partial<ProjectData["timeline"]>) => Promise<void>;
-	syncTranscriptToDatabase: (fullEDUs: FullEDU[], uploadId?: string) => Promise<void>;
+	syncTimelineToDatabase: (
+		timeline: Partial<ProjectData["timeline"]>,
+	) => Promise<void>;
+	syncTranscriptToDatabase: (
+		fullEDUs: FullEDU[],
+		uploadId?: string,
+	) => Promise<void>;
 	forceTimelineSync: () => Promise<void>;
 }
 
@@ -137,14 +149,21 @@ const useProjectStore = create<ProjectStore>()(
 				set({ isSyncing: true });
 				try {
 					// Create directly in database
-					const result = await projectActions.createProject(userId, initialMedia, name || `Project ${new Date().toLocaleDateString()}`);
+					const result = await projectActions.createProject(
+						userId,
+						initialMedia,
+						name || `Project ${new Date().toLocaleDateString()}`,
+					);
 
 					if (!result.success || !result.projectId) {
 						throw new Error(result.error || "Failed to create project");
 					}
 
 					// Load the created project
-					const getResult = await projectActions.getProject(result.projectId, userId);
+					const getResult = await projectActions.getProject(
+						result.projectId,
+						userId,
+					);
 					if (!getResult.success || !getResult.project) {
 						throw new Error("Failed to load created project");
 					}
@@ -155,15 +174,22 @@ const useProjectStore = create<ProjectStore>()(
 					const projectData: ProjectData = {
 						id: dbProject.id,
 						name: dbProject.name,
-						initialMedia: (dbProject.settings as any)?.initialMedia || initialMedia,
+						initialMedia:
+							(dbProject.settings as any)?.initialMedia || initialMedia,
 						uploads: (dbProject.settings as any)?.uploads || [],
 						timeline: {
-							tracks: dbProject.tracks as any[] || [],
-							trackItemsMap: dbProject.trackItems as Record<string, any> || {},
-							trackItemIds: Object.keys(dbProject.trackItems as Record<string, any> || {}),
-							transitionsMap: dbProject.transitions as Record<string, any> || {},
-							transitionIds: Object.keys(dbProject.transitions as Record<string, any> || {}),
-							compositions: dbProject.compositions as any[] || [],
+							tracks: (dbProject.tracks as any[]) || [],
+							trackItemsMap:
+								(dbProject.trackItems as Record<string, any>) || {},
+							trackItemIds: Object.keys(
+								(dbProject.trackItems as Record<string, any>) || {},
+							),
+							transitionsMap:
+								(dbProject.transitions as Record<string, any>) || {},
+							transitionIds: Object.keys(
+								(dbProject.transitions as Record<string, any>) || {},
+							),
+							compositions: (dbProject.compositions as any[]) || [],
 							duration: dbProject.duration,
 						},
 						settings: {
@@ -171,7 +197,7 @@ const useProjectStore = create<ProjectStore>()(
 							width: dbProject.width,
 							height: dbProject.height,
 							background: dbProject.background as any,
-							...(dbProject.settings as any || {}),
+							...((dbProject.settings as any) || {}),
 						},
 						fullEDUs: [],
 						createdAt: dbProject.createdAt.toISOString(),
@@ -190,7 +216,12 @@ const useProjectStore = create<ProjectStore>()(
 					return projectData;
 				} catch (error) {
 					console.error("Failed to create project:", error);
-					set({ syncError: error instanceof Error ? error.message : "Failed to create project" });
+					set({
+						syncError:
+							error instanceof Error
+								? error.message
+								: "Failed to create project",
+					});
 					throw error;
 				} finally {
 					set({ isSyncing: false });
@@ -223,12 +254,18 @@ const useProjectStore = create<ProjectStore>()(
 						initialMedia: (dbProject.settings as any)?.initialMedia || {},
 						uploads: (dbProject.settings as any)?.uploads || [],
 						timeline: {
-							tracks: dbProject.tracks as any[] || [],
-							trackItemsMap: dbProject.trackItems as Record<string, any> || {},
-							trackItemIds: Object.keys(dbProject.trackItems as Record<string, any> || {}),
-							transitionsMap: dbProject.transitions as Record<string, any> || {},
-							transitionIds: Object.keys(dbProject.transitions as Record<string, any> || {}),
-							compositions: dbProject.compositions as any[] || [],
+							tracks: (dbProject.tracks as any[]) || [],
+							trackItemsMap:
+								(dbProject.trackItems as Record<string, any>) || {},
+							trackItemIds: Object.keys(
+								(dbProject.trackItems as Record<string, any>) || {},
+							),
+							transitionsMap:
+								(dbProject.transitions as Record<string, any>) || {},
+							transitionIds: Object.keys(
+								(dbProject.transitions as Record<string, any>) || {},
+							),
+							compositions: (dbProject.compositions as any[]) || [],
 							duration: dbProject.duration,
 						},
 						settings: {
@@ -236,7 +273,7 @@ const useProjectStore = create<ProjectStore>()(
 							width: dbProject.width,
 							height: dbProject.height,
 							background: dbProject.background as any,
-							...(dbProject.settings as any || {}),
+							...((dbProject.settings as any) || {}),
 						},
 						fullEDUs: [],
 						createdAt: dbProject.createdAt.toISOString(),
@@ -244,18 +281,24 @@ const useProjectStore = create<ProjectStore>()(
 					};
 
 					// Check for transcriptions
-					const transcriptResult = await transcriptionActions.getProjectTranscriptions(projectId);
-					if (transcriptResult.success && transcriptResult.transcriptions?.length) {
+					const transcriptResult =
+						await transcriptionActions.getProjectTranscriptions(projectId);
+					if (
+						transcriptResult.success &&
+						transcriptResult.transcriptions?.length
+					) {
 						// Get the first transcription's fullEDUs
 						const firstTranscript = transcriptResult.transcriptions[0];
 						if (firstTranscript.segments) {
-							projectData.fullEDUs = (firstTranscript.segments as any[]).map((segment, index) => ({
-								edu_index: index,
-								edu_content: segment.text,
-								edu_start: segment.start,
-								edu_end: segment.end,
-								words: segment.words || [],
-							}));
+							projectData.fullEDUs = (firstTranscript.segments as any[]).map(
+								(segment, index) => ({
+									edu_index: index,
+									edu_content: segment.text,
+									edu_start: segment.start,
+									edu_end: segment.end,
+									words: segment.words || [],
+								}),
+							);
 						}
 					}
 
@@ -273,7 +316,10 @@ const useProjectStore = create<ProjectStore>()(
 					return true;
 				} catch (error) {
 					console.error("Failed to load project from DB:", error);
-					set({ syncError: error instanceof Error ? error.message : "Failed to load project" });
+					set({
+						syncError:
+							error instanceof Error ? error.message : "Failed to load project",
+					});
 					return false;
 				} finally {
 					set({ isSyncing: false });
@@ -292,7 +338,10 @@ const useProjectStore = create<ProjectStore>()(
 					set({ lastSyncedAt: new Date(), syncError: null });
 				} catch (error) {
 					console.error("Failed to save project:", error);
-					set({ syncError: error instanceof Error ? error.message : "Failed to save project" });
+					set({
+						syncError:
+							error instanceof Error ? error.message : "Failed to save project",
+					});
 					throw error;
 				} finally {
 					set({ isSyncing: false });
@@ -315,7 +364,9 @@ const useProjectStore = create<ProjectStore>()(
 			},
 
 			// Update project timeline
-			updateProjectTimeline: async (timeline: Partial<ProjectData["timeline"]>) => {
+			updateProjectTimeline: async (
+				timeline: Partial<ProjectData["timeline"]>,
+			) => {
 				const { currentProjectId, projectData, userId } = get();
 				if (!currentProjectId || !projectData || !userId) return;
 
@@ -330,7 +381,9 @@ const useProjectStore = create<ProjectStore>()(
 			},
 
 			// Update project settings
-			updateProjectSettings: async (settings: Partial<ProjectData["settings"]>) => {
+			updateProjectSettings: async (
+				settings: Partial<ProjectData["settings"]>,
+			) => {
 				const { currentProjectId, projectData, userId } = get();
 				if (!currentProjectId || !projectData || !userId) return;
 
@@ -429,7 +482,12 @@ const useProjectStore = create<ProjectStore>()(
 					await projectActions.deleteProject(projectId, userId);
 				} catch (error) {
 					console.error("Failed to delete project:", error);
-					set({ syncError: error instanceof Error ? error.message : "Failed to delete project" });
+					set({
+						syncError:
+							error instanceof Error
+								? error.message
+								: "Failed to delete project",
+					});
 				}
 
 				// If deleting current project, clear it
@@ -455,7 +513,7 @@ const useProjectStore = create<ProjectStore>()(
 				try {
 					const result = await projectActions.listUserProjects(userId);
 					if (result.success && result.projects) {
-						const projectList: ProjectListItem[] = result.projects.map(p => ({
+						const projectList: ProjectListItem[] = result.projects.map((p) => ({
 							id: p.id,
 							name: p.name,
 							thumbnail: p.thumbnail || undefined,
@@ -479,7 +537,9 @@ const useProjectStore = create<ProjectStore>()(
 			},
 
 			// Sync timeline to database
-			syncTimelineToDatabase: async (timeline: Partial<ProjectData["timeline"]>) => {
+			syncTimelineToDatabase: async (
+				timeline: Partial<ProjectData["timeline"]>,
+			) => {
 				const { currentProjectId, userId } = get();
 				if (!currentProjectId || !userId) return;
 
@@ -488,14 +548,21 @@ const useProjectStore = create<ProjectStore>()(
 			},
 
 			// Sync transcript to database
-			syncTranscriptToDatabase: async (fullEDUs: FullEDU[], uploadId?: string) => {
+			syncTranscriptToDatabase: async (
+				fullEDUs: FullEDU[],
+				uploadId?: string,
+			) => {
 				const { projectData, userId } = get();
 				if (!projectData || !userId) return;
 
 				// Use provided uploadId or find the most recent transcribable upload
-				const targetUploadId = uploadId || projectData.uploads?.find(
-					u => u.contentType?.includes('audio') || u.contentType?.includes('video')
-				)?.id;
+				const targetUploadId =
+					uploadId ||
+					projectData.uploads?.find(
+						(u) =>
+							u.contentType?.includes("audio") ||
+							u.contentType?.includes("video"),
+					)?.id;
 
 				if (!targetUploadId) {
 					console.warn("No valid upload found for transcription sync");
@@ -503,13 +570,18 @@ const useProjectStore = create<ProjectStore>()(
 				}
 
 				try {
-					await transcriptionActions.saveTranscription(targetUploadId, fullEDUs, {
-						language: "zh", // TODO: Make configurable
-						wordCount: fullEDUs.reduce((acc, edu) =>
-							acc + edu.edu_content.split(/\s+/).length, 0
-						),
-						duration: fullEDUs[fullEDUs.length - 1]?.edu_end || 0,
-					});
+					await transcriptionActions.saveTranscription(
+						targetUploadId,
+						fullEDUs,
+						{
+							language: "zh", // TODO: Make configurable
+							wordCount: fullEDUs.reduce(
+								(acc, edu) => acc + edu.edu_content.split(/\s+/).length,
+								0,
+							),
+							duration: Math.round(fullEDUs[fullEDUs.length - 1]?.edu_end || 0),
+						},
+					);
 					set({ lastSyncedAt: new Date() });
 				} catch (error) {
 					console.error("Failed to sync transcript to database:", error);
@@ -550,7 +622,7 @@ const useProjectStore = create<ProjectStore>()(
 
 				const updated = {
 					...projectData,
-					uploads: projectData.uploads?.filter(u => u.id !== uploadId) || [],
+					uploads: projectData.uploads?.filter((u) => u.id !== uploadId) || [],
 				};
 				set({ projectData: updated });
 			},
@@ -589,8 +661,14 @@ const useProjectStore = create<ProjectStore>()(
 				if (!currentProjectId || !projectData || !userId) return;
 
 				// Get current timeline state from the timeline store
-				const useStore = await import("./use-store").then(m => m.default);
-				const { tracks, trackItemsMap, transitionsMap, compositions, timeline } = useStore.getState();
+				const useStore = await import("./use-store").then((m) => m.default);
+				const {
+					tracks,
+					trackItemsMap,
+					transitionsMap,
+					compositions,
+					timeline,
+				} = useStore.getState();
 
 				if (!timeline) return;
 
@@ -606,7 +684,11 @@ const useProjectStore = create<ProjectStore>()(
 
 				try {
 					// Directly call the server action without debounce
-					await timelineActions.saveTimeline(currentProjectId, userId, timelineData);
+					await timelineActions.saveTimeline(
+						currentProjectId,
+						userId,
+						timelineData,
+					);
 					set({ lastSyncedAt: new Date() });
 				} catch (error) {
 					console.error("Failed to force sync timeline:", error);

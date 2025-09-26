@@ -126,8 +126,8 @@ const useStore = create<ITimelineStore>()(
 				background: state.background,
 				structure: state.structure,
 			}),
-		}
-	)
+		},
+	),
 );
 
 export default useStore;
