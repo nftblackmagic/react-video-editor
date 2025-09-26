@@ -111,8 +111,10 @@ const applyZoomWithPlayhead = (
 	// Calculate playhead position in pixels using the timeline utils function
 	// Add timeline offset to account for the left padding
 	const timelineOffsetX = 40; // This should match TIMELINE_OFFSET_CANVAS_LEFT
-	const currentPlayheadPos = timeMsToUnits(playheadTimeMs, currentScale.zoom) + timelineOffsetX;
-	const newPlayheadPos = timeMsToUnits(playheadTimeMs, newScale.zoom) + timelineOffsetX;
+	const currentPlayheadPos =
+		timeMsToUnits(playheadTimeMs, currentScale.zoom) + timelineOffsetX;
+	const newPlayheadPos =
+		timeMsToUnits(playheadTimeMs, newScale.zoom) + timelineOffsetX;
 
 	// Calculate where playhead currently appears in viewport (its visual position on screen)
 	const playheadViewportOffset = currentPlayheadPos - currentScrollLeft;

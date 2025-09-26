@@ -136,8 +136,10 @@ export function useTimelineZoom({
 					});
 
 					if (scrollContainer) {
-						const currentScrollLeft = Math.max(0,
-							(scrollContainer as HTMLElement).scrollLeft || 0);
+						const currentScrollLeft = Math.max(
+							0,
+							(scrollContainer as HTMLElement).scrollLeft || 0,
+						);
 
 						console.log("📏 Before zoom scroll:", currentScrollLeft);
 

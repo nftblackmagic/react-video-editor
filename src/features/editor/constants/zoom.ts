@@ -21,7 +21,7 @@ export const ZOOM_CONSTANTS = {
 
 	// Zoom step sizes
 	BUTTON_ZOOM_STEP: 0.25,
-	WHEEL_ZOOM_STEP: 0.05,  // Reduced from 0.1 for smoother wheel zoom
+	WHEEL_ZOOM_STEP: 0.05, // Reduced from 0.1 for smoother wheel zoom
 	KEYBOARD_ZOOM_STEP: 0.25,
 } as const;
 

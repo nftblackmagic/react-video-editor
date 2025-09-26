@@ -25,6 +25,8 @@ import FloatingControl from "./control-item/floating-controls/floating-control";
 import CropModal from "./crop-modal/crop-modal";
 import { FONTS } from "./data/fonts";
 import useTimelineEvents from "./hooks/use-timeline-events";
+import { useKeybindingsListener } from "@/hooks/use-keybindings";
+import { useEditorActions } from "@/hooks/use-editor-actions";
 import MenuListHorizontal from "./menu-list-horizontal";
 import Navbar from "./navbar";
 import Scene from "./scene";
@@ -96,6 +98,8 @@ const Editor = ({ projectId }: EditorProps) => {
 	const isLargeScreen = useIsLargeScreen();
 
 	useTimelineEvents();
+	useKeybindingsListener();
+	useEditorActions();
 
 	// TODO: Replace with real authentication system
 	// Demo user UUID - replace with real auth when ready

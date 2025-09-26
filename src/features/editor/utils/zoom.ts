@@ -103,9 +103,11 @@ export function calculateZoomKeepingPlayheadVisible(
 	// Calculate playhead position in pixels at both zoom levels
 	// Include timeline offset for accurate positioning
 	const currentPlayheadPos =
-		playheadSeconds * ZOOM_CONSTANTS.PIXELS_PER_SECOND * currentZoom + timelineOffsetX;
+		playheadSeconds * ZOOM_CONSTANTS.PIXELS_PER_SECOND * currentZoom +
+		timelineOffsetX;
 	const newPlayheadPos =
-		playheadSeconds * ZOOM_CONSTANTS.PIXELS_PER_SECOND * newZoom + timelineOffsetX;
+		playheadSeconds * ZOOM_CONSTANTS.PIXELS_PER_SECOND * newZoom +
+		timelineOffsetX;
 
 	// Calculate where playhead currently appears in the viewport (absolute pixel position)
 	const playheadViewportOffset = currentPlayheadPos - currentScrollLeft;

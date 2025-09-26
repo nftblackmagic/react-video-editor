@@ -81,8 +81,15 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 		// During zoom operations, prevent scroll resets
 		if (isZoomingRef.current) {
 			// If we have a target scroll position and the canvas is trying to reset to near 0
-			if (targetScrollAfterZoom.current && targetScrollAfterZoom.current > 100 && Math.abs(v.scrollLeft) < 50) {
-				console.log("⚠️ Preventing canvas scroll reset during zoom. Target:", targetScrollAfterZoom.current);
+			if (
+				targetScrollAfterZoom.current &&
+				targetScrollAfterZoom.current > 100 &&
+				Math.abs(v.scrollLeft) < 50
+			) {
+				console.log(
+					"⚠️ Preventing canvas scroll reset during zoom. Target:",
+					targetScrollAfterZoom.current,
+				);
 				// Force the canvas back to the target position
 				if (timeline) {
 					timeline.scrollTo({ scrollLeft: targetScrollAfterZoom.current });
@@ -261,9 +268,7 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 		// Check if this is a suspicious reset during zoom
 		// The canvas might be resetting the scroll after a scale change
 		const isSuspiciousReset =
-			isZoomingRef.current &&
-			absCurrentScrollLeft > 100 &&
-			newScrollLeft < 50;
+			isZoomingRef.current && absCurrentScrollLeft > 100 && newScrollLeft < 50;
 
 		console.log("📜 handleOnScrollH called:", {
 			newScrollLeft,
@@ -283,7 +288,11 @@ const Timeline = ({ stateManager }: { stateManager: StateManager }) => {
 		}
 
 		// During zoom, also prevent small incremental scrolls that look like animations
-		if (isZoomingRef.current && absCurrentScrollLeft > 500 && newScrollLeft < 100) {
+		if (
+			isZoomingRef.current &&
+			absCurrentScrollLeft > 500 &&
+			newScrollLeft < 100
+		) {
 			console.log("⚠️ Blocking incremental scroll reset during zoom");
 			return;
 		}
